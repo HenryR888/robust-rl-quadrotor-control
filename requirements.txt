@@ -1,0 +1,5 @@
+numpy # we'll use numpy for all of our vector and matrix operations
+scipy # we'll use scipy when solving differential equations
+gymnaisum # gymnasium ensures standard PPO compatibility from environment files
+matplotlib # used for our visualisations
+pytest # we use this for running tests
