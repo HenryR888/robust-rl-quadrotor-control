@@ -1,5 +1,5 @@
 '''
-In this feel, we shall implement the simulator to check that our drone dynamics behave as we expect. 
+In this file, we shall implement the simulator to check that our drone dynamics behave as we expect. 
 The way in which we confirm this is by intergrating our 12 ODEs forward in time, over a time horizon and check that the output is as we expected. 
 '''
 
