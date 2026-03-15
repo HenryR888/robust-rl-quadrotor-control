@@ -28,7 +28,7 @@ def rotation_matrix(phi, theta, psi):
 # tau_y = (l/sqrt(2)).(-u_1 - u_2 + u_3 + u_4)
 # tau_z = k_d.(-u_1 + u_2 - u_3 + u_4)
 
-def thrust_matrix(params):
+def thrust_matrix(params: Quadrotorparams):
     s = params.l/np.sqrt(2)
     k_d = params.k_d
 
@@ -41,7 +41,7 @@ def thrust_matrix(params):
 
 # assemble all 12 ODEs: 
 
-def f(x, u, params):
+def f(x, u, params: Quadrotorparams):
 
     v_x, v_y, v_z = x[3], x[4], x[5]
     phi, theta, psi = x[6], x[7], x[8]
