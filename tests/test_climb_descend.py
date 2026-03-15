@@ -32,7 +32,7 @@ t_eval = np.linspace(0,5,200)
 # fetch the solution from the simulator:
 sol = simulation(x_0, u, t_span, params, t_eval)
 
-# plot the result (we should expect an increasing exponential for climb and decreasing exponential for descent): 
+# plot the result (we should expect an increasing parabola for climb and decreasing parobola for descent): 
 plt.plot(sol.t,sol.y[2])
 plt.xlabel('Time Elapsed (s)')
 plt.ylabel('Elevation (m)')

@@ -27,8 +27,8 @@ u = np.array([0.9*h,1.1*h,0.9*h,1.1*h])
 #u = np.array([1.1*h,0.9*h,1.1*h,0.9*h]) #CLOCKWISE yaw
 
 # setup parameters to be fed into simulation function: 
-t_span = (0,100)
-t_eval = np.linspace(0,100,200)
+t_span = (0,3)
+t_eval = np.linspace(0,3,200)
 
 # fetch the solution from the simulator:
 sol = simulation(x_0, u, t_span, params, t_eval)
@@ -38,6 +38,6 @@ sol = simulation(x_0, u, t_span, params, t_eval)
 plt.plot(sol.t,sol.y[8])
 plt.xlabel('Time Elapsed (s)')
 plt.ylabel('Angle (rad)')
-plt.title('Pure Pitch Test')
+plt.title('Pure Yaw Test')
 plt.grid(True)
 plt.show()

@@ -27,17 +27,17 @@ h = params.hover_thrust
 u = np.array([1.1*h,1.1*h,0.9*h,0.9*h]) #BACKWARD pitch
 
 # setup parameters to be fed into simulation function: 
-t_span = (0,100)
-t_eval = np.linspace(0,100,200)
+t_span = (0,3)
+t_eval = np.linspace(0,3,200)
 
 # fetch the solution from the simulator:
 sol = simulation(x_0, u, t_span, params, t_eval)
 
 # plot the result (we can plot for x, z, theta, and omega_y), for x it should start at zero and then increase or decrease; z the same; theta should slowly start peeling away from 0 and then move away from 0;
 # in this case omega_y must be a straight line, since tau_y is constant, and omega_x, omega_z are 0: 
-plt.plot(sol.t,sol.y[7])
+plt.plot(sol.t,sol.y[0])
 plt.xlabel('Time Elapsed (s)')
 plt.ylabel('Angle (rad)')
-plt.title('Pure Roll Test')
+plt.title('Pure Pitch Test')
 plt.grid(True)
 plt.show()
