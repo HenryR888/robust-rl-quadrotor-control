@@ -1,5 +1,6 @@
 '''
 Here we perform a freefall test. We release the quadrotor from some height without any thrust applied, and we expect the quadrotor to fall to the ground. 
+Additionally, the attitude of the drone (in all roll, pitch and yaw directions) should not change...i.e. they should remain at 0.
 '''
 
 import sys

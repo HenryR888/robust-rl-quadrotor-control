@@ -2,6 +2,7 @@
 Here we perform a climb and descend test. We let the quadrotor start climbing at 'x' m, and set the thrust to be greater than the hover thrust. For descent, we set the thrust to be lower than
 hover thrust. We expect to see the drone's elevation increase, when climbing. And when descending, the drone's elevation should decrease at a rate much less than under freefall. 
 Moreover, the more we increase the thrust, the steeper the climb gradient should be. And for descent, the more we reduce the thrust, the steeper (more negative) the descent gradient should be.
+Additionally, the attitude of the drone (in all roll, pitch and yaw directions) should not change...i.e. they should remain at 0.
 '''
 
 import sys

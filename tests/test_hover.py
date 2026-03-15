@@ -1,6 +1,6 @@
 '''
 Here we perform a hover test. We initiate the hover at 'x' m above the ground (we can tweak this height of course), and verify that under no stochastic disturbances,
-(addition of this will come later), the height should remain constant.
+(addition of this will come later), the height should remain constant. Additionally, the attitude of the drone (in all roll, pitch and yaw directions) should not change...i.e. they should remain at 0.
 '''
 
 import sys
