@@ -35,7 +35,7 @@ sol = simulation(x_0, u, t_span, params, t_eval)
 
 # plot the result (we can plot for x, z, theta, and omega_y), for x it should start at zero and then increase or decrease; z the same; theta should slowly start peeling away from 0 and then move away from 0;
 # in this case omega_y must be a straight line, since tau_y is constant, and omega_x, omega_z are 0: 
-plt.plot(sol.t,sol.y[0])
+plt.plot(sol.t,sol.y[7])
 plt.xlabel('Time Elapsed (s)')
 plt.ylabel('Angle (rad)')
 plt.title('Pure Pitch Test')

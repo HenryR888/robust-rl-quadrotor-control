@@ -10,9 +10,9 @@ class Quadrotorparams:
 
     # moments of inertia (these are hyperparameters which we shall need to tune within the model...the intuition is to keep these reasonably small as the moments of inertia describe how 'difficult' it would be to rotate the drone in that direction...there is obviously stability/maneuverability trade-off here): 
 
-    I_x: float = 0.01
-    I_y: float = 0.01
-    I_z: float = 0.01
+    I_x: float = 0.1
+    I_y: float = 0.1
+    I_z: float = 0.1
 
     # drone dimensions and torque-thrust ratio:
 
