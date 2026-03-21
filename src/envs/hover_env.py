@@ -105,5 +105,5 @@ class HoverEnv(gym.Env):
         phi = self.state[6]
         theta = self.state[7]
         crashed = z <= 0.0
-        flipped = abs(phi) > np.pi/3 or abs(theta) > np.pi/3 # for this 'flipped' quantity I need to add a calculated restriction inside of params...which would be given by total vertical thrust>= total downward force. The total vertical thrust = thrust_max.cos(phi).cos(theta)
+        flipped = abs(phi) > np.pi/3 or abs(theta) > np.pi/3 # for this 'flipped' quantity I need to add a calculated restriction inside of params...which would be given by total vertical thrust>= total downward force. The total vertical thrust = thrust_max.cos(phi).cos(theta)...based on a quick calc. from params, we  have that 60deg = pi/3 rad is a decent estimate
         return bool(crashed or flipped)
