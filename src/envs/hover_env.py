@@ -11,6 +11,7 @@ import gymnasium as gym
 from gymnasium import spaces # used to define set of valid actions and observations
 from quadrotor.params import Quadrotorparams
 from quadrotor.dynamics import f, thrust_matrix
+from quadrotor.simulator import rk4_method
 
 class HoverEnv(gym.Env):
 
@@ -61,3 +62,26 @@ class HoverEnv(gym.Env):
         self.step_count = 0
         return self.state.copy(), {}
         
+    def step(self, thrust_tor_vec: np.ndarray):
+
+        u = self.Thrust_matrix_inverse @ thrust_tor_vec # obtain input thrust vector to be passed back into function f from dynamics, which expects this u vector
+        u = np.clip(u,0.0,None) # ensure that u is greater than or eq to 0, otherwise return 0...since it cannot have negative thrust
+
+        self.state = rk4_method(self.state, u, self.dt, self.params)
+        self.step_count += 1
+
+        
+    def _compute_reward(self, thrust_tor_vec: np.ndarray):
+        pos = self.state[0:3]
+        vel = self.state[3:6]
+        angle = self.state[6:8]
+        omega = self.state[9:12]
+
+        hover_thrust = np.array([self.params.hover_thrust*4, 0.0, 0.0, 0.0])
+        thrust_err = thrust_tor_vec - hover_thrust
+        reward = (-self.w_pos * np.dot(pos-self.target, pos-self.target)
+                  - self.w_vel * np.dot(vel, vel)
+                  - self.w_angle * np.dot(angle, angle)
+                  - self.w_omega * np.dot(omega, omega)
+                  - self.w_eff * np.dot(thrust_err, thrust_err))
+        return reward
