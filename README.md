@@ -20,11 +20,12 @@ The project includes:
 Clone the repo and install the package in editable mode: 
 
   ```bash                                                                                                                                                                                  
-  git clone <repo-url>
+  git clone https://github.com/HenryR888/robust-rl-quadrotor-control.git
   cd robust-rl-quadrotor-control                                                                                                                                                           
   python3 -m venv .venv
   source .venv/bin/activate                                                                                                                                                                
   pip install -e .
+  ```
 
 ## License
 
