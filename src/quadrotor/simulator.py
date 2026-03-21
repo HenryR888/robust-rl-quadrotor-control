@@ -9,7 +9,7 @@ from quadrotor.dynamics import f
 from quadrotor.params import Quadrotorparams
 
 
-def simulation(x_0: np.array, u: np.array, t_span: tuple, params:Quadrotorparams, t_eval: np.array = None):
+def simulation(x_0: np.ndarray, u: np.ndarray, t_span: tuple, params:Quadrotorparams, t_eval: np.ndarray = None):
 
     sol = solve_ivp(
         lambda t, x: f(x,u,params),
@@ -19,3 +19,11 @@ def simulation(x_0: np.array, u: np.array, t_span: tuple, params:Quadrotorparams
         t_eval=t_eval
     )
     return sol 
+
+def rk4_method(x0: np.ndarray, u: np.ndarray, dt: float, params: Quadrotorparams) -> np.ndarray: 
+    k1 = f(x0,u, params)
+    k2 = f(x0 + 0.5*dt*k1, u, params)
+    k3 = f(x0 + 0.5*dt*k2, u, params)
+    k4 = f(x0 + dt*k3, u, params)
+    return x0 + (dt/6.0)*(k1 + 2*k2 + 2*k3 + k4)
+
