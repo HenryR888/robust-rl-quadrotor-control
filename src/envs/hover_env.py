@@ -3,7 +3,7 @@ Here we create the hover environment for the quadrotor drone. This is compatible
 which shall allow our PID, LQR and PPO controllers to be compared within the same environment for fair comparison. 
 
 The process works as follows: 
-The agent (controller) observes the full 12-state and outpus [T,tau_x, tau_y, tau_z]. The episode target here is for the drone to hover at a fixed position. 
+The agent (controller) observes the full 12-state and outputs [T,tau_x, tau_y, tau_z]. The episode target here is for the drone to hover at a fixed position. 
 '''
 
 import numpy as np
@@ -49,4 +49,15 @@ class HoverEnv(gym.Env):
         self.Thrust_matrix = thrust_matrix(self.params)
         self.Thrust_matrix_inverse = np.linalg.inv(self.Thrust_matrix)
 
+    # Define reset as per Gymnasium API: 
+    def reset(self, seed=None, options=None):
+        super().reset(seed=seed) # !Note: we shall set a seed here later once we start at randomly initialised positions to ensure reproducibility
+        self.state = np.array([
+            0.0, 0.0, 1.0, # start position at the hover position...!Note: this is just for now, we will ultimately have drone start at some random position and fly to target position and then hover there
+            0.0, 0.0, 0.0, # vx,vy, vz
+            0.0, 0.0, 0.0, # phi, theta, psi 
+            0.0, 0.0, 0.0 # omegax, omegay, omegaz
+        ])
+        self.step_count = 0
+        return self.state.copy(), {}
         
