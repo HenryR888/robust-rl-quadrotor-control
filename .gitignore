@@ -13,4 +13,4 @@ logs/
 .DS_Store
 .ipynb_checkpoints/
 
-  *.egg-info/ 
+*.egg-info/ 
