@@ -4,8 +4,6 @@ For a left roll, we set u_1 = u_4, with u_2 = u_3 and u_1 > u_2 to accomplish th
 thrust is applied to keep drone at constant elevation), and y should change too (remember by the right hand rule that positive y is to the left). 
 '''
 
-import sys
-sys.path.append('src')
 
 import numpy as np 
 import matplotlib.pyplot as plt

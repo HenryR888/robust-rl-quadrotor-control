@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "robust-rl-quadrotor-control"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy", # we'll use numpy for all of our vector and matrix operations
+    "scipy", # we'll use scipy when solving differential equations
+    "gymnasium", # gymnasium ensures standard PPO compatibility from environment files
+    "matplotlib", # used for our visualisations
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

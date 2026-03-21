@@ -5,9 +5,6 @@ Moreover, the more we increase the thrust, the steeper the climb gradient should
 Additionally, the attitude of the drone (in all roll, pitch and yaw directions) should not change...i.e. they should remain at 0.
 '''
 
-import sys
-sys.path.append('src')
-
 import numpy as np 
 import matplotlib.pyplot as plt
 from quadrotor.params import Quadrotorparams

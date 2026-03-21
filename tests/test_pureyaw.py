@@ -4,9 +4,6 @@ For a counter-clockwise (CCW) yaw, we set u_2 = u_4, with u_1 = u_3 and u_2 > u_
 quadrotor should only experience slight changes in the z-direction. 
 '''
 
-import sys
-sys.path.append('src')
-
 import numpy as np 
 import matplotlib.pyplot as plt
 from quadrotor.params import Quadrotorparams

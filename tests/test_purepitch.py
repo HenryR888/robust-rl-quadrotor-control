@@ -4,8 +4,6 @@ For a forward (positive) pitch, we set u_3 = u_4, with u_1 = u_2 and u_3 > u_1 t
 thrust is applied to keep drone at constant elevation), and x should change too (remember by the right hand rule that forward is positive). 
 '''
 
-import sys
-sys.path.append('src')
 
 import numpy as np 
 import matplotlib.pyplot as plt
