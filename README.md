@@ -15,6 +15,17 @@ The project includes:
 - reinforcement learning control using PPO
 - evaluation under noise and environmental disturbances
 
+## Getting Started
+
+Clone the repo and install the package in editable mode: 
+
+  ```bash                                                                                                                                                                                  
+  git clone <repo-url>
+  cd robust-rl-quadrotor-control                                                                                                                                                           
+  python3 -m venv .venv
+  source .venv/bin/activate                                                                                                                                                                
+  pip install -e .
+
 ## License
 
 Apache License 2.0
