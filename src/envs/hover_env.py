@@ -19,7 +19,7 @@ class HoverEnv(gym.Env):
         super().__init__()
         self.params = Quadrotorparams()
         self.target = target
-        self.dt = 0.01 # this is the amount of real time that passes per time step (this corresponds to 10^-3s...!Note: May need adjusting)
+        self.dt = 0.01 # this is the amount of real time that passes per time step (this corresponds to 10^-2s...!Note: May need adjusting)
         self.max_steps = 500 # thus, the episode length will be 5s of hover time (I'm setting up a baseline where the drone is initiated in its hover position, and we check that it stays there)
         self.step_count = 0 # initiate step count at 0, and then we update it in step() function
         self.state = None 
@@ -70,8 +70,22 @@ class HoverEnv(gym.Env):
         self.state = rk4_method(self.state, u, self.dt, self.params)
         self.step_count += 1
 
-        
+        reward = self._compute_reward(thrust_tor_vec) # compute the reward as per below
+        terminated = self._is_terminated() # check whether episode is terminated 
+        truncated = self.step_count >= self.max_steps # check whether episode ends based on truncation
+
+        return self.state.copy(), reward, terminated, truncated, {}
+
+    
+    
     def _compute_reward(self, thrust_tor_vec: np.ndarray):
+        '''
+        - reward function for PPO: r_t = -(w_pos||p-p*||^2 + w_vel||v||^2 + w_angle||phi^2 + theta^2|| + w_omega||omega||^2 + w_eff||u-u_hov||^2)
+        - the reasoning for this reward function is it follows a similar mechanism to the LQR (Quadratic) cost function, which is a quadratic cost function dependent on performance and 
+          control effort. I am trying to minimise variation here so we can
+          have a statistically fair comparison between control methods (LQR, PPO) in their ability for robust stabilisation of the drone.
+        '''
+        
         pos = self.state[0:3]
         vel = self.state[3:6]
         angle = self.state[6:8]
@@ -85,3 +99,11 @@ class HoverEnv(gym.Env):
                   - self.w_omega * np.dot(omega, omega)
                   - self.w_eff * np.dot(thrust_err, thrust_err))
         return reward
+    
+    def _is_terminated(self):
+        z = self.state[2]
+        phi = self.state[6]
+        theta = self.state[7]
+        crashed = z <= 0.0
+        flipped = abs(phi) > np.pi/3 or abs(theta) > np.pi/3 # for this 'flipped' quantity I need to add a calculated restriction inside of params...which would be given by total vertical thrust>= total downward force. The total vertical thrust = thrust_max.cos(phi).cos(theta)
+        return bool(crashed or flipped)
