@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import numpy as np
 
 @dataclass(frozen=True)
 class Quadrotorparams:
@@ -19,6 +20,18 @@ class Quadrotorparams:
     l : float = 0.2 # arm length (m) from centre of mass
     k_d: float = 0.1 # torque-thrust ratio
 
+    # maximum thrust in N, for a single MN2212 T-motor (equivalent to 1.8kg)
+    max_rotor_thrust: float = 17.7
+
     @property
     def hover_thrust(self) -> float: # the amount of thrust per rotor needed to maintain hover...we will add the stochastic forces later. 
         return (self.m*self.g)/4.0
+       
+    # maximum roll and pitch torque produced form MN2212 T-motor:  
+    @property
+    def tau_xy_max(self) -> float:
+        return 2*(self.l/np.sqrt(2))*self.max_rotor_thrust
+    
+    @property
+    def tau_z_max(self) -> float:
+        return 2*self.k_d*self.max_rotor_thrust
