@@ -92,7 +92,9 @@ for ax, t, az, a in [(axes[2, 0], t_climb, az_climb, a_climb),
     ax.plot(t, az, color='steelblue', linewidth=1.5, label=r'$a_z(t)$ simulated')                                                                                                        
     ax.axhline(a, **EXPECTED, label=f'Expected = {a:.3f} m s$^{{-2}}$')
     ax.set_ylabel(r'Vertical Acceleration $a_z$ (m/s$^{2}$)', fontsize=9)                                                                                                                                     
-    style_ax(ax) 
+    style_ax(ax)
+    axes[2,0].set_ylim(4.8,5.0)
+    axes[2,1].set_ylim(-4.8,-5.0) 
 
 plt.tight_layout()
 plt.savefig('figures/climb_descent_test.png', dpi=150, bbox_inches='tight')
