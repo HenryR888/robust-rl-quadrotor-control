@@ -27,7 +27,7 @@ states = [env.state.copy()] # here we start from the IC of the iniital state tha
    
 for _ in range(env.max_steps): # step through the hover_env                                                                                                                                                                                   
     obs, _, terminated, truncated, _ = env.step(hover_action)
-    states.append(obs.copy())                                                                                                                                                                                       
+    states.append(obs)                                                                                                                                                                                       
     if terminated or truncated:
         break                                                                                                                                                                                                       
                   
@@ -79,7 +79,8 @@ ax.plot(t, z, color='steelblue', linewidth=1.5, label=r'$z(t)$')
 ax.axhline(5.0, **EXPECTED)                                                                                                                                                                                         
 ax.set_ylabel('Elevation (m)', fontsize=9)                                                                                                                                                                           
 ax.set_title('Elevation', fontsize=10)                                                                                                                                                                               
-style_ax(ax)                                                                                                                                                                                                        
+style_ax(ax)    
+axes[0,0].set_ylim(4.99,5.01)                                                                                                                                                                                                    
 
 # plot second figure with vertical linear velocity:                                                                                                                                                                                                     
 ax = axes[0, 1]                                                                                                                                                                                                     
@@ -87,7 +88,8 @@ ax.plot(t, vz, color='steelblue', linewidth=1.5, label=r'$v_z(t)$')
 ax.axhline(0.0, **EXPECTED)                                                                                                                                                                                         
 ax.set_ylabel(r'$v_z$ (m/s)', fontsize=9)                                                                                                                                                                    
 ax.set_title('Vertical Linear Velocity', fontsize=10)
-style_ax(ax)                                                                                                                                                                                                        
+style_ax(ax)
+axes[0,1].set_ylim(-0.01,0.01)                                                                                                                                                                                                        
 
 # plot third figure with euler angles for roll pitch and yaw:                                                                                                                                                                                                        
 ax = axes[1, 0]                                                                                                                                                                                                     
@@ -97,7 +99,8 @@ ax.plot(t, psi, color='seagreen', linewidth=1.5, label=r'$\psi$ (yaw)')
 ax.axhline(0.0, **EXPECTED)                                                                                                                                                                                         
 ax.set_ylabel('Euler Angles (rad)', fontsize=9)                                                                                                                                                                     
 ax.set_title('Roll, Pitch, Yaw', fontsize=10)                                                                                                                                                                       
-style_ax(ax)                                                                                                                                                                                                      
+style_ax(ax)
+axes[1,0].set_ylim(-0.01,0.01)                                                                                                                                                                                                      
 
 # last plot figure with angular velocity:                                                                                                                                                                                                                 
 ax = axes[1, 1]                                                                                                                                                                                                   
@@ -107,7 +110,8 @@ ax.plot(t, omemga_z, color='seagreen',   linewidth=1.5, label=r'$\omega_z$')
 ax.axhline(0.0, **EXPECTED)                                                                                                                                                                                         
 ax.set_ylabel(r'Angular Velocity (rad/s)', fontsize=9)                                                                                                                                                       
 ax.set_title('Body-Frame Angular Velocities', fontsize=10)                                                                                                                                                          
-style_ax(ax)                                                                                                                                                                                                        
+style_ax(ax)
+axes[1,1].set_ylim(-0.01,0.01)                                                                                                                                                                                                        
                                                                                                                                                                                                                       
 plt.tight_layout()                                                                                                                                                                                                  
 plt.savefig('figures/hover_test.png', dpi=150, bbox_inches='tight')                                                                                                                                                       
