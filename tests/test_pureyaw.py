@@ -1,40 +1,97 @@
 '''
-We test that the yaw dynamics work correctly here. We apply equal thrust to rotors 1 and 3 or 2 and 4, and see that the yaw angle changes with time, and yaw angular velocity changes with time. 
-For a counter-clockwise (CCW) yaw, we set u_2 = u_4, with u_1 = u_3 and u_2 > u_1 to accomplish the CCW yaw. We should expect that the omega_z and psi are the two values that change, the position of
-quadrotor should only experience slight changes in the z-direction. 
+Here we execute a pure yaw test using HoverEnv.step()
+
+We apply T=mg and a constant roll torque: tau_x = tau_0, with tau_y = tau_z=0 (that is no yaw torque nor pitch torque)
+
+Our expected behaviour is as follows: 
+- omega_dot_x(t) = tau_0/I_x (constant angular acceleration)
+- omega_x(t) = (tau_0/I_x)t (linear angular velocity)
+- phi(t) = (tau_0/2.I_x).t^2 (quad. profile of roll angle)
+- theta, psi, omega_y, omega_z all remain approx 0. 
 '''
 
-import numpy as np 
+import numpy as np
 import matplotlib.pyplot as plt
-from quadrotor.params import Quadrotorparams
-from quadrotor.simulator import simulation
+from envs.hover_env import HoverEnv
 
-# fetch our parameters: 
-params = Quadrotorparams()
+# initiliase the env. with some constants:
+env = HoverEnv()
+params = env.params
+mg = params.m * params.g
+z_0 = 5.0 # initialise the drone at 5m, same as hover test.
 
-# start at some vertical position 'x' m, perfectly straight and level:
-x_0 = np.array([0,0,5, # corresponds to position ICs
-                0,0,0, # corresponds to velocity ICs
-                0,0,0, # corresponds to euler angle ICs
-                0,0,0]) # corresponds to angular velocity ICs
+tau_0 = 0.05 * params.tau_z_max # 5% of max roll torque
 
-# apply yaw thrust accordingly (CCW yaw is u_2=u_4 and u_1=u_3, with u_2>u_1):
-h = params.hover_thrust
-u = np.array([0.9*h,1.1*h,0.9*h,1.1*h])
-#u = np.array([1.1*h,0.9*h,1.1*h,0.9*h]) #CLOCKWISE yaw
+env.reset()
+env.state = np.array([
+        0.0, 0.0, z_0,
+        0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0,
+])
 
-# setup parameters to be fed into simulation function: 
-t_span = (0,3)
-t_eval = np.linspace(0,3,200)
+action = np.array([mg, 0.0, 0.0, tau_0])
+states = [env.state.copy()]
 
-# fetch the solution from the simulator:
-sol = simulation(x_0, u, t_span, params, t_eval)
+for _ in range(env.max_steps):
+    obs, _, terminated, truncated, _ = env.step(action)
+    states.append(obs)
+    if terminated or truncated:
+        break
 
-# plot the result (we can plot for z, psi, and omega_z), for z it should start at zero and then increase or decrease; psi should slowly start peeling away from 0 and then move away from 0;
-# in this case omega_z must be a straight line, since tau_z is constant, and omega_x, omega_y are 0: 
-plt.plot(sol.t,sol.y[8])
-plt.xlabel('Time Elapsed (s)')
-plt.ylabel('Angle (rad)')
-plt.title('Pure Yaw Test')
-plt.grid(True)
+states = np.array(states)
+t = np.arange(len(states))*env.dt # convert the discrete time indices to real time indices...recall that dt = 0.01s
+
+phi = states[:, 8]
+omega_x = states[:, 11]
+omega_dot_x = np.gradient(omega_x, env.dt)
+
+# now we find the analytical solutions for ang. accel. ang. velocity and phi: 
+
+alpha_analytical = np.full_like(t, tau_0/params.I_z)
+omega_analytical = (tau_0/params.I_z)*t
+phi_analytical = (tau_0/(2*params.I_z))*(t**2)
+
+# plot the figs: 
+fig, axes = plt.subplots(1, 3, figsize=(13, 4))
+fig.suptitle(
+    r'Pure Roll Test: constant $\tau_x = \tau_0$, $T = mg$',
+    fontsize=12, fontweight='bold'
+)
+
+EXPECTED = {'color': 'tomato', 'linestyle': '--', 'linewidth': 1.0}                                                                                                                                               
+   
+def style_ax(ax):                                                                                                                                                                                                   
+    ax.set_xlabel('Time (s)', fontsize=9)
+    ax.tick_params(labelsize=8)
+    ax.legend(fontsize=8, loc='best')
+    ax.grid(True, linestyle=':', alpha=0.6)
+
+# ang. acceleration graph: 
+ax = axes[0]                                                                                                                                                                                                        
+ax.plot(t, omega_dot_x, color='steelblue', linewidth=1.5, label=r'$\dot{\omega}_x$ simulated')
+ax.plot(t, alpha_analytical, **EXPECTED, label=rf'$(\tau_0/I_x) = {tau_0/params.I_z:.3f}$ rad/s$^{{2}}$')                                                                                                                    
+ax.set_ylabel(r'$\dot{\omega}_x$ (rad/s$^{2}$)', fontsize=9)                                                                                                                                                             
+ax.set_title('Roll Angular Acceleration', fontsize=10)                                                                                                                                                              
+style_ax(ax)
+axes[0].set_ylim(tau_0/params.I_z - 0.01, tau_0/params.I_z + 0.01)
+
+# ang. velocity graph: 
+ax = axes[1]    
+ax.plot(t, omega_x, color='steelblue', linewidth=1.5, label=r'$\omega_x(t)$ simulated')
+ax.plot(t, omega_analytical, **EXPECTED, label=r'$(\tau_0/I_x)\,t$')                                                                                                                                                   
+ax.set_ylabel(r'$\omega_x$ (rad/s)', fontsize=9)                                                                                                                                                             
+ax.set_title('Roll Angular Velocity', fontsize=10)                                                                                                                                                                  
+style_ax(ax)
+
+# roll angle graph: 
+ax = axes[2]                                                                                                                                                                                                        
+ax.plot(t, phi, color='steelblue', linewidth=1.5, label=r'$\phi(t)$ simulated')
+ax.plot(t, phi_analytical, **EXPECTED, label=r'$(\tau_0/2I_x)\,t^2$')                                                                                                                                                  
+ax.set_ylabel(r'$\phi$ (rad)', fontsize=9)
+ax.set_title('Roll Angle', fontsize=10)                                                                                                                                                                             
+style_ax(ax)
+
+plt.tight_layout()
+plt.savefig('figures/pure_yaw_test.png', dpi=150, bbox_inches='tight')
 plt.show()

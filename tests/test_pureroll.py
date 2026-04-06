@@ -1,12 +1,12 @@
 '''
 Here we execute a pure roll test using HoverEnv.step()
 
-We apply T=mg and a constant roll torque: tau_x = B, with tau_y = tau_z=0 (that is no yaw torque nor pitch torque)
+We apply T=mg and a constant roll torque: tau_x = tau_0, with tau_y = tau_z=0 (that is no yaw torque nor pitch torque)
 
 Our expected behaviour is as follows: 
-- omega_dot_x(t) = B/I_x (constant angular acceleration)
-- omega_x(t) = (B/I_x)t (linear angular velocity)
-- phi(t) = (B/2.I_x).t^2 (quad. profile of roll angle)
+- omega_dot_x(t) = tau_0/I_x (constant angular acceleration)
+- omega_x(t) = (tau_0/I_x)t (linear angular velocity)
+- phi(t) = (tau_0/2.I_x).t^2 (quad. profile of roll angle)
 - theta, psi, omega_y, omega_z all remain approx 0. 
 '''
 
