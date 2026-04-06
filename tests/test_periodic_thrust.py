@@ -20,7 +20,7 @@ params = env.params
 mg = params.m * params.g
 z_0 = 5.0 # initialise the drone at 5m, same as hover test. 
 A = 0.3*mg # thrust amp...we can vary this as desired. 
-nu = 2*np.pi # this corresponds to oscillation frequency, and thus we have 1 cycle per second
+nu = 2*np.pi # this corresponds to angular frequency, and thus we have an oscillatory freq. of 1 cycle per second
 
 env.reset()
 env.state = np.array([
@@ -56,6 +56,7 @@ az_analytical = (A/params.m) * np.sin(nu*t)
 vz_analytical = (A/(params.m*nu)) * (1 - np.cos(nu*t))
 z_analytical = z_0 + (A/(params.m*nu))*t - (A/(params.m* nu**2)) * np.sin(nu*t)
 
+# plot the figs: 
 fig, axes = plt.subplots(2, 2, figsize=(11, 7)) 
 fig.suptitle(
     r'Periodic Thrust Test: $T = mg + A\sin(\nu t)$, '
@@ -71,6 +72,7 @@ def style_ax(ax):
     ax.legend(fontsize=8, loc='best')
     ax.grid(True, linestyle=':', alpha=0.6)
 
+# thrust graph: 
 ax = axes[0, 0]
 ax.plot(t, thrusts, color='steelblue', linewidth=1.5, label=r'$T(t)$')                                                                                                                                              
 ax.axhline(mg, **EXPECTED, label=r'$mg$ (hover)')                                                                                                                                                                 
@@ -78,6 +80,7 @@ ax.set_ylabel('Thrust (N)', fontsize=9)
 ax.set_title('Applied Thrust', fontsize=10)                                                                                                                                                                         
 style_ax(ax)
 
+# acceleration graph: 
 ax = axes[0, 1] 
 ax.plot(t, az, color='steelblue', linewidth=1.5, label=r'$a_z(t)$ simulated')
 ax.plot(t, az_analytical, **EXPECTED, label=r'$(A/m)\sin(\nu t)$')                                                                                                                                                
@@ -85,6 +88,7 @@ ax.set_ylabel(r'$a_z$ (m/s$^{2}$)', fontsize=9)
 ax.set_title('Vertical Acceleration', fontsize=10)                                                                                                                                                                  
 style_ax(ax)
 
+# vertical velocity graph: 
 ax = axes[1, 0]                                                                                                                                                                                                     
 ax.plot(t, vz, color='steelblue', linewidth=1.5, label=r'$v_z(t)$ simulated')
 ax.plot(t, vz_analytical, **EXPECTED, label=r'$(A/m\nu)(1-\cos(\nu t))$')                                                                                                                                         
@@ -92,6 +96,7 @@ ax.set_ylabel(r'$v_z$ (m/s)', fontsize=9)
 ax.set_title('Vertical Velocity', fontsize=10)                                                                                                                                                                      
 style_ax(ax)
 
+# elevation graph: 
 ax = axes[1, 1] 
 ax.plot(t, z, color='steelblue', linewidth=1.5, label=r'$z(t)$ simulated')
 ax.plot(t, z_analytical, **EXPECTED, label=r'expected')                                                                                                                                                         
