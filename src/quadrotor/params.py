@@ -10,10 +10,10 @@ class Quadrotorparams:
     g: float = 9.81 # gravitational acceleration (m.s^(-2))
 
     # moments of inertia (these are hyperparameters which we shall need to tune within the model...the intuition is to keep these reasonably small as the moments of inertia describe how 'difficult' it would be to rotate the drone in that direction...there is obviously stability/maneuverability trade-off here): 
-    # From A S Sanca et al. 2008: I_x = 2/5.M_sphere.r^2 + 2.l^2.M_rotor = I_y; I_z = 2/5.M_sphere.r^2 + 4.l^2.M_rotor. For the F450 proposed drone frame, we would have l = 0.159m, M_rotor = 0.069kg. M_sphere = M_total - 4M_rotor = 1kg - 0.276 = 0.724kg. Estimated thickness of drone = 160mm, thus r = 0.08m
-    I_x: float = 0.005342
-    I_y: float = 0.005342
-    I_z: float = 0.008831
+    # From A S Sanca et al. 2008: I_x = 2/5.M_sphere.r^2 + 2.l^2.M_rotor = I_y; I_z = 2/5.M_sphere.r^2 + 4.l^2.M_rotor. For the F450 proposed drone frame, we would have l = 0.225m, M_rotor = 0.069kg. M_sphere = M_total - 4M_rotor = 1kg - 0.276 = 0.724kg. Estimated thickness of drone = 160mm, thus r = 0.08m
+    I_x: float = 0.0083969
+    I_y: float = 0.0083969
+    I_z: float = 0.06395344
 
     # drone dimensions and torque-thrust ratio:
 
