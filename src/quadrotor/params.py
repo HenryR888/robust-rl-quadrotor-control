@@ -17,7 +17,7 @@ class Quadrotorparams:
 
     # drone dimensions and torque-thrust ratio:
 
-    l : float = 0.159 # arm length (m) from centre of mass
+    l : float = 0.225 # arm length (m) from centre of mass
     k_d: float = 0.1 # torque-thrust ratio
 
     # maximum thrust in N, for a single MN2212 T-motor (equivalent to 1.8kg)
