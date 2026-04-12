@@ -29,7 +29,7 @@ class PIDState:
         self.integral = 0.0
         self.prev_error = 0.0
     
-class CascadePIDController:
+class CascadedPIDController:
 
     def __init__(self, params: Quadrotorparams):
         self.params = params 
@@ -83,7 +83,7 @@ class CascadePIDController:
         phi, theta, psi = obs[6], obs[7], obs[8]
 
         # OUTER LOOP:
-        
+
         # control loop for Elevation, z. Our process variable is z, which we want to reach our target/setpoint. This is done by manipulation of our control variable, T_correction, thrust input:
 
         e_z = target[2] - z
