@@ -20,7 +20,7 @@ class HoverEnv(gym.Env):
         self.params = Quadrotorparams()
         self.target = target
         self.dt = 0.01 # this is the amount of real time that passes per time step (this corresponds to 10^-2s...!Note: May need adjusting)
-        self.max_steps = 500 # thus, the episode length will be 5s of hover time (I'm setting up a baseline where the drone is initiated in its hover position, and we check that it stays there)
+        self.max_steps = 5000 # thus, the episode length will be 5s of hover time (I'm setting up a baseline where the drone is initiated in its hover position, and we check that it stays there)...!Note: adjust as necessary for tuning
         self.step_count = 0 # initiate step count at 0, and then we update it in step() function
         self.state = None 
 

@@ -1,7 +1,6 @@
 '''
 Here we implement an initial test to see that the cascaded PID controller implementation works within the HoverEnv. 
-We initialise the drone at [0,0,5] (at its hover position), and confirm that the drone remains there. 
-We plot the state trajectories to confirm the stability of the quadrotor
+We utilise this file to plot trajectories for our control outputs and tune our gains Kp, Ki and Kd respectively for our PID controller. 
 '''
 
 import numpy as np
@@ -17,7 +16,7 @@ obs, _ = env.reset()
 env.state = np.array( # start the drone at  hover positions 1.0m 
     [0.0,0.0,1.0,
      0.0, 0.0,0.0,
-     0.0,0.0,0.0,
+     0.1,0.0,0.0,
      0.0,0.0,0.0,])
 obs = env.state.copy()
 controller.reset()
@@ -30,8 +29,9 @@ for _ in range(env.max_steps):
     obs, _, terminated, truncated, _ = env.step(action)
     states.append(obs)
     actions.append(action.copy())
-    if terminated or truncated:
-        break
+    # comment out for tuning: 
+    #if terminated or truncated:
+       #break
 
 states = np.array(states)
 actions = np.array(actions)
