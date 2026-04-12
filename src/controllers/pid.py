@@ -45,7 +45,7 @@ class CascadedPIDController:
         self.max_tilt = np.pi/6
 
         # Attitude gains for inner control loop: 
-        self.gains_phi = PIDGains(kp=0.005,ki=0.0, kd=0.01, integral_limit=0.5) # COMPLETED TUNING
+        self.gains_phi = PIDGains(kp=0.005,ki=0.0, kd=0.01, integral_limit=0.5) # TUNING COMPLETE
         self.gains_theta = PIDGains(kp=0.0,ki=0.0, kd=0.0, integral_limit=0.5)
         self.gains_psi = PIDGains(kp=0.0,ki=0.0, kd=0.0, integral_limit=0.5)
 
