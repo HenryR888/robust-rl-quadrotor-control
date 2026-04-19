@@ -35,7 +35,7 @@ class CascadedPIDController:
         self.params = params 
 
         # z-axis gains:
-        self.gains_z = PIDGains(kp=0.0,ki=0.0, kd=0.0, integral_limit=5.0) # these gain values are hardcoded, and need to be tuned.
+        self.gains_z = PIDGains(kp=2.0,ki=0.0, kd=1.5, integral_limit=0.5) # TUNING COMPLETE
 
         # x and y axis position gains:
         self.gains_x = PIDGains(kp=0.0,ki=0.0, kd=0.0, integral_limit=0.0)

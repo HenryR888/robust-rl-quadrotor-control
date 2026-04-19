@@ -14,9 +14,9 @@ controller = CascadedPIDController(env.params)
 # initialise environment from HoverEnv: 
 obs, _ = env.reset()
 env.state = np.array( # start the drone at  hover positions 1.0m 
-    [0.0,0.0,1.0,
+    [0.1,0.0,1.0,
      0.0, 0.0,0.0,
-     0.0,0.0,0.1,
+     0.0,0.0,0.0,
      0.0,0.0,0.0,])
 obs = env.state.copy()
 controller.reset()
