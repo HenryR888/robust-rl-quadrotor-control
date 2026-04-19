@@ -39,7 +39,7 @@ class CascadedPIDController:
 
         # x and y axis position gains:
         self.gains_x = PIDGains(kp=0.003,ki=0.0, kd=0.05, integral_limit=0.0) # TUNING COMPLETE
-        self.gains_y = PIDGains(kp=0.0,ki=0.0, kd=0.0, integral_limit=0.0)
+        self.gains_y = PIDGains(kp=0.003,ki=0.0, kd=0.05, integral_limit=0.0) # TUNING COMPLETE
 
         # even though within hover_env we set a limit of pi/4 rads before drone flips...we want some margin to prevent controller pushing drone to limit, and stochastic disturbance arises pushing drone into flip. 
         self.max_tilt = np.pi/6
