@@ -24,10 +24,12 @@ class PIDState:
         # we instantiate the integral and prev_error, as we require these terms for adding up the integral values and computing the approximate derivative term de/dt = (ek-e_{k-1})/dt
         self.integral =0.0
         self.prev_error = 0.0
+        self._first_call = True
 
     def reset(self):
         self.integral = 0.0
         self.prev_error = 0.0
+        self._first_call = True
     
 class CascadedPIDController:
 
@@ -67,7 +69,12 @@ class CascadedPIDController:
             -gains.integral_limit, # we clip for anti-windup, to prevent drone overshooting if control output saturates. 
             gains.integral_limit
         )
-        derivative = (error - state.prev_error)/dt # approximate derivative term numerically by: e_t - e_{t-1}/dt
+
+        if state._first_call:
+            derivative = 0.0
+            state._first_call = False
+        else:
+            derivative = (error - state.prev_error)/dt # approximate derivative term numerically by: e_t - e_{t-1}/dt
         state.prev_error = error
         return  (gains.kp*error) + (gains.ki*state.integral) + (gains.kd*derivative) # output control variable 
     
