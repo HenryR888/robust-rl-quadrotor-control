@@ -46,7 +46,7 @@ class CascadedPIDController:
 
         # Attitude gains for inner control loop: 
         self.gains_phi = PIDGains(kp=0.005,ki=0.0, kd=0.01, integral_limit=0.5) # TUNING COMPLETE
-        self.gains_theta = PIDGains(kp=0.0,ki=0.0, kd=0.0, integral_limit=0.5)
+        self.gains_theta = PIDGains(kp=0.003,ki=0.0, kd=0.01, integral_limit=0.5) # TUNING COMPLETE
         self.gains_psi = PIDGains(kp=0.0,ki=0.0, kd=0.0, integral_limit=0.5)
 
         # we have 6 PID controllers, one controlling each channel. Thus, we need each controller to have separate integral and prev_error values (i.e. PID states): 
