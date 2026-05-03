@@ -41,8 +41,8 @@ class LQRController:
         A, B = _build_AB(params)
 
         Q = np.diag([ # we set Q according to Bryson's rule, which means that Q_ii = 1/xtilde_i_max^2.
-            1.0, 1.0, 4.0, # here we choose max x error to be 1m, y error to be 1m and z error to be 0.5m...we can change these a bit later, I want to be lenient for initial tuning.
-            1.0, 1.0, 4.0, # x error to be 1m/s, y error to be 1m/s
+            1.0, 1.0, 20.0, # here we choose max x error to be 1m, y error to be 1m and z error to be 0.5m...we can change these a bit later, I want to be lenient for initial tuning.
+            1.0, 1.0, 20.0, # x error to be 1m/s, y error to be 1m/s
             33.0, 33.0, 8.0, # phi, and theta are more strict, we want them to be within 10deg of amount...yaw we can be more lenient for initial tuning, allowing it to be 20deg off 
             4.0, 4.0, 4.0, # angular velocity must be within 0.5rad/s error for all of x,y,z directions
         ])
