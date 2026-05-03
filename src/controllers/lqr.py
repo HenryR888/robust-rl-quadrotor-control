@@ -1,5 +1,5 @@
 '''
-Here we implement the Linear Quadratic Regulator Controller for the quadrotor:
+Here we implement the Linear Quadratic Regulator (LQR) Controller for the quadrotor:
 '''
 
 import numpy as np
@@ -59,3 +59,37 @@ class LQRController:
 
         # then we compute our feedback controller gain matrix, K = R^-1.B'.P:
         self.K = np.linalg.inv(R)@ B.T @ P
+
+    def reset(self):
+        pass
+
+    def compute_action(self, obs:np.array, target: np.array, dt: float) -> np.ndarray:
+        """
+        Here our obs is the full 12-state vector given by: [x,y,z,vx,vy,vz,phi,theta,psi,wx,wy,wz]
+        - target is: desired position [x*, y*, z*]
+        - dt is not used here but we need it to fit into our hover_env structure
+        We return [T, tau_x, tau_y, tau_z]
+        """
+
+        # desired hover position:
+        x_equil = np.array([target[0], target[1], target[2],
+                            0.0, 0.0, 0.0,
+                            0.0, 0.0, 0.0,
+                            0.0, 0.0, 0.0])
+            
+        # desired hover control input: 
+        u_equil = np.array([self.params.m * self.params.g, 0.0, 0.0, 0.0])
+
+        # then we compute xtilde, which is the x_error = obs - x_equil
+        x_error = obs - x_equil
+
+        # then we pass it into our control law utilde = -K.x_error, and then add to u_equil to obtain desired control input: 
+        u = u_equil - self.K @ x_error
+
+        # then one thing we need to be mindful of is to clip the control input of the controller, should it go beyond physical lims: 
+        T = np.clip(u[0], 0.0, 4.0*self.params.max_rotor_thrust)
+        tau_x = np.clip(u[1], -self.params.tau_xy_max, self.params.tau_xy_max)
+        tau_y = np.clip(u[2], -self.params.tau_xy_max, self.params.tau_xy_max)
+        tau_z = np.clip(u[3], -self.params.tau_z_max, self.params.tau_z_max)
+
+        return np.array([T, tau_x, tau_y, tau_z])
