@@ -119,7 +119,7 @@ def test_attitude_recovery():
     '''
     initial = np.array([0.0,0.0,1.0,
                         0.0,0.0,0.0,
-                        np.pi/18,0.0,0.0,
+                        0.0,0.0,np.pi/10,
                         0.0,0.0,0.0])
     states, actions, terminated_early = _run_episode(initial)
     _plot(states, actions, 0.01, 'LQR Test 3: Attitude Recovery (pi/18 roll)')
@@ -135,7 +135,7 @@ def test_attitude_recovery():
 # 3 tests: 
 #test_hover_stability()
 #test_z_step_recovery()
-#test_attitude_recovery
+test_attitude_recovery()
 
 
 def _plot_z_tuning(states: np.ndarray, dt: float, title: str):
@@ -169,4 +169,4 @@ def tune_z():
     print(f"Max vz after {settle_time}s: {np.abs(states[settle_idx:, 5]).max():.4f} m/s")                                                                                           
                                                                                                                                                                                            
                                                                                                                                                                                            
-tune_z()
+#tune_z()

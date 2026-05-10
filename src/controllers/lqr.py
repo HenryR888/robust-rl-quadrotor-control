@@ -43,14 +43,14 @@ class LQRController:
         Q = np.diag([ # we set Q according to Bryson's rule, which means that Q_ii = 1/xtilde_i_max^2.
             1.0, 1.0, 25.0, # here we choose max x error to be 1m, y error to be 1m and z error to be 0.5m...we can change these a bit later, I want to be lenient for initial tuning.
             1.0, 1.0, 35.0, # x error to be 1m/s, y error to be 1m/s
-            33.0, 33.0, 8.0, # phi, and theta are more strict, we want them to be within 10deg of amount...yaw we can be more lenient for initial tuning, allowing it to be 20deg off 
-            4.0, 4.0, 4.0, # angular velocity must be within 0.5rad/s error for all of x,y,z directions
+            33.0, 33.0, 30.0, # phi, and theta are more strict, we want them to be within 10deg of amount...yaw we can be more lenient for initial tuning, allowing it to be 20deg off 
+            4.0, 4.0, 1.0, # angular velocity must be within 0.5rad/s error for all of x,y,z directions
         ])
 
         R = np.diag([
             0.25, # deviation in thrust is 3N
-            2.0, # max deviation in the roll torque is 1Nm, which is approx. 20% of max roll torque
-            2.0,
+            4.0, # max deviation in the roll torque is 1Nm, which is approx. 20% of max roll torque
+            4.0,
             4.0, # max deviation in yaw torque is 0.708Nm, which is also approx. 20% of max yaw torque
         ])
 
