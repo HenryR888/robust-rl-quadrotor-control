@@ -98,7 +98,7 @@ def test_z_step_recovery():
     '''
     here we start the drone at 0.5m below the target, it should climb and hold target position.
     '''
-    initial = np.array([0.0, 0.0, 0.5,
+    initial = np.array([0.0, 1.0, 1.0,
                         0.0, 0.0, 0.0,
                         0.0, 0.0, 0.0, 
                         0.0, 0.0, 0.0, ])
@@ -134,8 +134,8 @@ def test_attitude_recovery():
 
 # 3 tests: 
 #test_hover_stability()
-#test_z_step_recovery()
-test_attitude_recovery()
+test_z_step_recovery()
+#test_attitude_recovery()
 
 
 def _plot_z_tuning(states: np.ndarray, dt: float, title: str):
