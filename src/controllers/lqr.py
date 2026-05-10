@@ -49,8 +49,8 @@ class LQRController:
 
         R = np.diag([
             0.25, # deviation in thrust is 3N
-            4.0, # max deviation in the roll torque is 1Nm, which is approx. 20% of max roll torque
-            4.0,
+            6.0, # max deviation in the roll torque is 1Nm, which is approx. 20% of max roll torque
+            6.0,
             4.0, # max deviation in yaw torque is 0.708Nm, which is also approx. 20% of max yaw torque
         ])
 

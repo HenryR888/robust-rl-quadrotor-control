@@ -117,9 +117,9 @@ def test_attitude_recovery():
     '''
     Here we start drone with pi/18 rad (10 deg) roll perturbation and we expect drone to damp without flipping
     '''
-    initial = np.array([0.0,0.0,1.0,
+    initial = np.array([1.5,2.0,0.5,
                         0.0,0.0,0.0,
-                        0.0,0.0,np.pi/10,
+                        0.0,np.pi/10,0.0,
                         0.0,0.0,0.0])
     states, actions, terminated_early = _run_episode(initial)
     _plot(states, actions, 0.01, 'LQR Test 3: Attitude Recovery (pi/18 roll)')
@@ -134,8 +134,8 @@ def test_attitude_recovery():
 
 # 3 tests: 
 #test_hover_stability()
-test_z_step_recovery()
-#test_attitude_recovery()
+#test_z_step_recovery()
+test_attitude_recovery()
 
 
 def _plot_z_tuning(states: np.ndarray, dt: float, title: str):
