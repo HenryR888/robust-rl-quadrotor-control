@@ -73,6 +73,9 @@ class HoverEnv(gym.Env):
         reward = self._compute_reward(thrust_tor_vec) # compute the reward as per below
         terminated = self._is_terminated() # check whether episode is terminated 
         truncated = self.step_count >= self.max_steps # check whether episode ends based on truncation
+        # here we add a -50 reward to the drone, to signal that crashing or flipping cannot occur. 
+        if terminated:
+            reward -= 50.0
 
         return self.state.copy(), reward, terminated, truncated, {}
 
