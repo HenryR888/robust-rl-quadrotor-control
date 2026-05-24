@@ -11,6 +11,7 @@ dependencies = [
     "scipy", # we'll use scipy when solving differential equations
     "gymnasium", # gymnasium ensures standard PPO compatibility from environment files
     "matplotlib", # used for our visualisations
+    "stable-baselines3[extra]", # we use for PPO RL library
 ]
 
 [tool.setuptools.packages.find]
