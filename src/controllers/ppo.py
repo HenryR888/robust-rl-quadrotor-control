@@ -2,6 +2,7 @@
 Here we implement the Proximal Policy Optimisation (PPO) controller for the quadrotor. We train PPO via the Stable-Baseline3 library.
 '''
 
+import os
 import numpy as np
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
@@ -10,10 +11,51 @@ from stable_baselines3.common.env_checker import check_env
 
 from envs.hover_env import HoverEnv
 
+# we create two directories: one is for the model directory, for which when we run the EvalCallback, we can store the best model which is found by pausing the rollout and evaluating
+# the mean reward over a specific number of test episodes and then saving policy which produced the highest mean reward. We also keep track of the logs within the log directory which we can subsequently use.
+# Finally, we use the tensorboard logger to plot all of our results from pytorch
+MODEL_DIR = "models/ppo"
+LOG_DIR = "logs/ppo"
+TENSORBOARD_LOG_DIR = "tensorboard/ppo"
+
 def train_ppo(total_timesteps: int = 1_000_000, n_envs: int =4):
 
     check_env(HoverEnv(), warn=True)
 
     # here we run n_envs in parallel to sample much for data for PPO to train on: 
     env = make_vec_env(HoverEnv, n_envs=n_envs)
+
+    eval_callback = EvalCallback(
+        HoverEnv(),
+        best_model_save_path=MODEL_DIR,
+        log_path=LOG_DIR,
+        eval_freq=max(10_000 // n_envs, 1), # we run an evaluation to update the model every 10000 time steps. 
+        n_eval_episodes=10, # here we run 10 test episodes to obtain the mean reward
+        deterministic=True, # we remove the noise during evaluation
+        render=False,
+    )
+
+    model = PPO(
+        "MlpPolicy", # we use a standard multi-layer perceptron as the architecture for our NN, since we have a simple 12-D vector as input and simple 4-D vector as output
+        env, # here we choose the environment from which we want our 'agent' (drone in this case) to sample experience from
+        verbose=1,
+        tensorboard_log=TENSORBOARD_LOG_DIR,
+        policy_kwargs={"net_arch": [128,128]}, # we use a 128 hidden layer size for actor and 128 hidden layer size for critic
+        learning_rate=3e-4, 
+        n_steps=2048,
+        batch_size=64, # we split the samples into mini-batches of 64 for gradient update
+        n_epochs=10, # we pass over each batch 10 times for gradient updates
+        gamma=0.99,
+        gae_lambda=0.95,
+        clip_range=0.2,
+        ent_coef=0.01,
+    )
+
+    model.learn(total_timesteps=total_timesteps, callback=eval_callback)
+
+    os.makedirs(MODEL_DIR, exist_ok=True)
+    model.save(os.path.join(MODEL_DIR,"final_model"))
+    print(f"Training is complete.")
+    return model
+
 
