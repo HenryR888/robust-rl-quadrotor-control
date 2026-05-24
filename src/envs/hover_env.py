@@ -25,9 +25,9 @@ class HoverEnv(gym.Env):
         self.state = None 
 
         # weights for our quadratic reward function !Note: (still need to be tuned). 
-        # We can start with the following reward function for PPO: r_t = -(w_pos||p-p*||^2 + w_vel||v||^2 + w_angle||phi^2 + theta^2|| + w_omega||omega||^2 + w_eff||u-u_hov||^2)
+        # We can start with the following reward function for PPO: r_t = 0.1 -(w_pos||p-p*||^2 + w_vel||v||^2 + w_angle||phi^2 + theta^2|| + w_omega||omega||^2 + w_eff||u-u_hov||^2)
         # the reasoning for this reward function is it follows a similar mechanism to the LQR (Quadratic) cost function, which is a quadratic cost function dependent on performance and control effort. I am trying to minimise variation here so we can
-        # have a statistically fair comparison between control methods (LQR, PPO) in their ability for robust stabilisation of the drone.
+        # have a statistically fair comparison between control methods (LQR, PPO) in their ability for robust stabilisation of the drone. We also add the 0.1 initially as a survival factor for early episodes of training
         self.w_pos = 1.0
         self.w_vel = 0.5
         self.w_angle = 0.5
@@ -80,10 +80,11 @@ class HoverEnv(gym.Env):
     
     def _compute_reward(self, thrust_tor_vec: np.ndarray):
         '''
-        - reward function for PPO: r_t = -(w_pos||p-p*||^2 + w_vel||v||^2 + w_angle||phi^2 + theta^2|| + w_omega||omega||^2 + w_eff||u-u_hov||^2)
+        - reward function for PPO: r_t = 0.1 -(w_pos||p-p*||^2 + w_vel||v||^2 + w_angle||phi^2 + theta^2|| + w_omega||omega||^2 + w_eff||u-u_hov||^2)
         - the reasoning for this reward function is it follows a similar mechanism to the LQR (Quadratic) cost function, which is a quadratic cost function dependent on performance and 
           control effort. I am trying to minimise variation here so we can
           have a statistically fair comparison between control methods (LQR, PPO) in their ability for robust stabilisation of the drone.
+        - note here that we've added a 0.1 value to signal positive reward for staying alive (not terminating) i.e. not crashing or flipping
         '''
         
         pos = self.state[0:3]
@@ -93,7 +94,8 @@ class HoverEnv(gym.Env):
 
         hover_thrust = np.array([self.params.hover_thrust*4, 0.0, 0.0, 0.0])
         thrust_err = thrust_tor_vec - hover_thrust
-        reward = (-self.w_pos * np.dot(pos-self.target, pos-self.target)
+        reward = (0.1
+                  -self.w_pos * np.dot(pos-self.target, pos-self.target)
                   - self.w_vel * np.dot(vel, vel)
                   - self.w_angle * np.dot(angle, angle)
                   - self.w_omega * np.dot(omega, omega)
