@@ -4,6 +4,7 @@ Here we implement the Proximal Policy Optimisation (PPO) controller for the quad
 
 import os
 import numpy as np
+import gymnasium as gym
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.callbacks import EvalCallback
@@ -18,12 +19,19 @@ MODEL_DIR = "models/ppo"
 LOG_DIR = "logs/ppo"
 TENSORBOARD_LOG_DIR = "tensorboard/ppo"
 
+# we create a wrapper to be able to generalise the target that we want the quadrotor to reach: 
+class RelativeObsWrapper(gym.ObservationWrapper):
+    def observation(self, obs):
+        obs = obs.copy()
+        obs[0:3] = obs[0:3] - self.env.target
+        return obs
+
 def train_ppo(total_timesteps: int = 1_000_000, n_envs: int =4):
 
     check_env(HoverEnv(), warn=True)
 
     # here we run n_envs in parallel to sample much for data for PPO to train on: 
-    env = make_vec_env(HoverEnv, n_envs=n_envs)
+    env = make_vec_env(lambda: RelativeObsWrapper(HoverEnv()), n_envs=n_envs)
 
     eval_callback = EvalCallback(
         HoverEnv(),
@@ -58,4 +66,22 @@ def train_ppo(total_timesteps: int = 1_000_000, n_envs: int =4):
     print(f"Training is complete.")
     return model
 
+class PPOController:
 
+    def __init__(self, model_path: str):
+        self.model = PPO.load(model_path)
+
+    def reset(self):
+        pass
+
+    def compute_action(self, obs: np.ndarray, target: np.ndarray, dt: float) -> np.ndarray:
+        """
+        Here our obs is the full 12-state vector given by: [x,y,z,vx,vy,vz,phi,theta,psi,wx,wy,wz]
+        - target is: desired position [x*, y*, z*]
+        - dt is not used here but we need it to fit into our hover_env structure
+        We return [T, tau_x, tau_y, tau_z]
+        """
+        relative_obs = obs.copy()
+        relative_obs[0:3] = obs[0:3] - target
+        action, _ = self.model.predict(relative_obs, deterministic=True) # here we take in the relative observation for our observation and pass that into our actor network, and output our [T,tau_x,tau_y,tau_z] action 
+        return action
