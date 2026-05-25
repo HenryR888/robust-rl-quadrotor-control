@@ -48,7 +48,7 @@ def train_ppo(total_timesteps: int = 1_000_000, n_envs: int =4):
         env, # here we choose the environment from which we want our 'agent' (drone in this case) to sample experience from
         verbose=1,
         tensorboard_log=TENSORBOARD_LOG_DIR,
-        policy_kwargs={"net_arch": [128,128]}, # we use a 128 hidden layer size for actor and 128 hidden layer size for critic
+        policy_kwargs={"net_arch": [128,128]}, # we use 2x128 hidden layers, for actor and 2 x128 hidden layer size for critic
         learning_rate=3e-4, 
         n_steps=2048,
         batch_size=64, # we split the samples into mini-batches of 64 for gradient update
