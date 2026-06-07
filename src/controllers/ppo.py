@@ -9,6 +9,7 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.env_checker import check_env
+from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 
 from envs.hover_env import HoverEnv
 
@@ -32,9 +33,12 @@ def train_ppo(total_timesteps: int = 1_000_000, n_envs: int =4):
 
     # here we run n_envs in parallel to sample much for data for PPO to train on: 
     env = make_vec_env(lambda: RelativeObsWrapper(HoverEnv()), n_envs=n_envs)
+    env = VecNormalize(env, norm_obs=True, norm_reward=True, clip_obs=10.0)
+
+    eval_env = VecNormalize(DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv())]), norm_obs=True, norm_reward=False)
 
     eval_callback = EvalCallback(
-        RelativeObsWrapper(HoverEnv()),
+        eval_env,
         best_model_save_path=MODEL_DIR,
         log_path=LOG_DIR,
         eval_freq=max(10_000 // n_envs, 1), # we run an evaluation to update the model every 10000 time steps. 
@@ -60,6 +64,7 @@ def train_ppo(total_timesteps: int = 1_000_000, n_envs: int =4):
     )
 
     model.learn(total_timesteps=total_timesteps, callback=eval_callback)
+    env.save(os.path.join(MODEL_DIR, "vec_normalize.pkl"))
 
     os.makedirs(MODEL_DIR, exist_ok=True)
     model.save(os.path.join(MODEL_DIR,"final_model"))
@@ -68,8 +73,13 @@ def train_ppo(total_timesteps: int = 1_000_000, n_envs: int =4):
 
 class PPOController:
 
-    def __init__(self, model_path: str):
+    def __init__(self, model_path: str, norm_path: str):
+        from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
         self.model = PPO.load(model_path)
+        vec_env = DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv())])
+        self.env = VecNormalize.load(norm_path, vec_env)
+        self.env.training=False
+        self.env.norm_reward = False
 
     def reset(self):
         pass
@@ -83,5 +93,6 @@ class PPOController:
         """
         relative_obs = obs.copy()
         relative_obs[0:3] = obs[0:3] - target
+        obs_norm = self.env.normalize_obs(relative_obs)
         action, _ = self.model.predict(relative_obs, deterministic=True) # here we take in the relative observation for our observation and pass that into our actor network, and output our [T,tau_x,tau_y,tau_z] action 
         return action

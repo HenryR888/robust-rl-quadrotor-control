@@ -33,7 +33,7 @@ model_path = best if os.path.exists(best + ".zip") else final
 print(f"  Loading model from: {model_path}.zip")
 
 
-controller = PPOController(model_path=model_path)
+controller = PPOController(model_path=model_path, norm_path=f"{MODEL_DIR}/vec_normalize.pkl")
 
 # initialise environment from HoverEnv: 
 env = HoverEnv(target=np.array([0.0, 0.0, 1.0]))

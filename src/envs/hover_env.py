@@ -30,8 +30,8 @@ class HoverEnv(gym.Env):
         # have a statistically fair comparison between control methods (LQR, PPO) in their ability for robust stabilisation of the drone. We also add the 0.1 initially as a survival factor for early episodes of training
         self.w_pos = 1.0
         self.w_vel = 0.5
-        self.w_angle = 0.5
-        self.w_omega = 0.5
+        self.w_angle = 2.0
+        self.w_omega = 2.0
         self.w_eff = 0.25
 
         # Define action space, as per gymnasium spaces API: 
