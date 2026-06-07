@@ -92,7 +92,7 @@ class HoverEnv(gym.Env):
         
         pos = self.state[0:3]
         vel = self.state[3:6]
-        angle = self.state[6:8]
+        angle = self.state[6:9]
         omega = self.state[9:12]
 
         hover_thrust = np.array([self.params.hover_thrust*4, 0.0, 0.0, 0.0])
