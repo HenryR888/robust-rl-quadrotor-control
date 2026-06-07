@@ -34,7 +34,7 @@ def train_ppo(total_timesteps: int = 1_000_000, n_envs: int =4):
     env = make_vec_env(lambda: RelativeObsWrapper(HoverEnv()), n_envs=n_envs)
 
     eval_callback = EvalCallback(
-        HoverEnv(),
+        RelativeObsWrapper(HoverEnv()),
         best_model_save_path=MODEL_DIR,
         log_path=LOG_DIR,
         eval_freq=max(10_000 // n_envs, 1), # we run an evaluation to update the model every 10000 time steps. 
