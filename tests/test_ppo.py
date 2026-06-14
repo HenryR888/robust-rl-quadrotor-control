@@ -18,8 +18,10 @@ print("HoverEnv passed check_env.\n")
 # here we check to see that the relative observation wrapper works correctly and sets desired target to [0,0,0]: 
 wrapped = RelativeObsWrapper(HoverEnv(target=np.array([0.0, 0.0, 1.0])))
 obs, _ = wrapped.reset()
-assert np.allclose(obs[0:3], 0.0), f"Expected [0,0,0] got {obs[0:3]}"
-print(f"Relative pos at reset: {obs[0:3]}  (expected [0, 0, 0])")
+raw_env= wrapped.env
+expected_relative = raw_env.state[0:3] - raw_env.target
+assert np.allclose(obs[0:3], expected_relative), f"Expected {expected_relative} got {obs[0:3]}"
+print(f"Relative pos at reset: {obs[0:3]}  (expected {expected_relative})")
 print("RelativeObsWrapper passed.\n")
 
 # we run a quick 50K timestep simulation to test that the environment and training pipeline works correctly without crashing: 
