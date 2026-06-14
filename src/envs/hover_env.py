@@ -53,14 +53,22 @@ class HoverEnv(gym.Env):
     # Define reset as per Gymnasium API: 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed) # !Note: we shall set a seed here later once we start at randomly initialised positions to ensure reproducibility
-        self.state = np.array([
-            0.0, 0.0, 1.0, # start position at the hover position...!Note: this is just for now, we will ultimately have drone start at some random position and fly to target position and then hover there
-            0.0, 0.0, 0.0, # vx,vy, vz
-            0.0, 0.0, 0.0, # phi, theta, psi 
-            0.0, 0.0, 0.0 # omegax, omegay, omegaz
-        ])
-        self.step_count = 0
+        # we randomise the reset position so the drone starts off with non-zero error: 
+        pos = self.np_random.uniform(-0.3, 0.3, size=3)+np.array([0.0,0.0,1.0]) # here we start the drone around position [0,0,1] each reset
+        vel = self.np_random.uniform(-0.1,0.1,size=3)
+        angle = self.np_random.uniform(-0.1,0.1, size=3)
+        self.state = np.concatenate([pos, vel, angle, np.zeros(3)])
+        self.step_count =0
         return self.state.copy(), {}
+
+        #self.state = np.array([
+            #0.0, 0.0, 1.0, # start position at the hover position...!Note: this is just for now, we will ultimately have drone start at some random position and fly to target position and then hover there
+            #0.0, 0.0, 0.0, # vx,vy, vz
+            #0.0, 0.0, 0.0, # phi, theta, psi 
+            #0.0, 0.0, 0.0 # omegax, omegay, omegaz
+        #])
+       # self.step_count = 0
+       # return self.state.copy(), {}
         
     def step(self, thrust_tor_vec: np.ndarray):
 
