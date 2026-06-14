@@ -25,7 +25,7 @@ print(f"Relative pos at reset: {obs[0:3]}  (expected {expected_relative})")
 print("RelativeObsWrapper passed.\n")
 
 # we run a quick 50K timestep simulation to test that the environment and training pipeline works correctly without crashing: 
-train_ppo(total_timesteps=1_000_000, n_envs=4)
+train_ppo(total_timesteps=2_000_000, n_envs=4)
 
 
 print("=== 4. PPOController evaluation ===")

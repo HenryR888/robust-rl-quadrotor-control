@@ -27,7 +27,7 @@ class RelativeObsWrapper(gym.ObservationWrapper):
         obs[0:3] = obs[0:3] - self.env.target
         return obs
 
-def train_ppo(total_timesteps: int = 1_000_000, n_envs: int =4):
+def train_ppo(total_timesteps: int = 2_000_000, n_envs: int =4):
 
     check_env(HoverEnv(), warn=True)
 
