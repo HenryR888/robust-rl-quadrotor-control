@@ -25,12 +25,13 @@ class HoverEnv(gym.Env):
         self.state = None 
 
         # weights for our quadratic reward function !Note: (still need to be tuned). 
-        # We can start with the following reward function for PPO: r_t = 0.1 -(w_pos||p-p*||^2 + w_vel||v||^2 + w_angle||phi^2 + theta^2|| + w_omega||omega||^2 + w_eff||u-u_hov||^2)
+        # We can start with the following reward function for PPO: r_t = 0.1 -(w_pos||p-p*||^2 + w_vel||v||^2 + w_roll_pitch||phi^2 + theta^2|| + w_yaw||psi^2|| + w_omega||omega||^2 + w_eff||u-u_hov||^2)
         # the reasoning for this reward function is it follows a similar mechanism to the LQR (Quadratic) cost function, which is a quadratic cost function dependent on performance and control effort. I am trying to minimise variation here so we can
         # have a statistically fair comparison between control methods (LQR, PPO) in their ability for robust stabilisation of the drone. We also add the 0.1 initially as a survival factor for early episodes of training
         self.w_pos = 1.0
         self.w_vel = 0.5
-        self.w_angle = 2.0
+        self.w_roll_pitch = 2.0
+        self.w_yaw = 8.0
         self.w_omega = 2.0
         self.w_eff = 0.25
 
@@ -91,7 +92,7 @@ class HoverEnv(gym.Env):
     
     def _compute_reward(self, thrust_tor_vec: np.ndarray):
         '''
-        - reward function for PPO: r_t = 0.1 -(w_pos||p-p*||^2 + w_vel||v||^2 + w_angle||phi^2 + theta^2|| + w_omega||omega||^2 + w_eff||u-u_hov||^2)
+        - reward function for PPO: r_t = 0.1 -(w_pos||p-p*||^2 + w_vel||v||^2 + w_roll_pitch||phi^2 + theta^2||+ w_yaw||psi^2|| + w_omega||omega||^2 + w_eff||u-u_hov||^2)
         - the reasoning for this reward function is it follows a similar mechanism to the LQR (Quadratic) cost function, which is a quadratic cost function dependent on performance and 
           control effort. I am trying to minimise variation here so we can
           have a statistically fair comparison between control methods (LQR, PPO) in their ability for robust stabilisation of the drone.
@@ -100,7 +101,8 @@ class HoverEnv(gym.Env):
         
         pos = self.state[0:3]
         vel = self.state[3:6]
-        angle = self.state[6:9]
+        roll_pitch = self.state[6:8]
+        yaw = self.state[8]
         omega = self.state[9:12]
 
         hover_thrust = np.array([self.params.hover_thrust*4, 0.0, 0.0, 0.0])
@@ -108,7 +110,8 @@ class HoverEnv(gym.Env):
         reward = (0.1
                   -self.w_pos * np.dot(pos-self.target, pos-self.target)
                   - self.w_vel * np.dot(vel, vel)
-                  - self.w_angle * np.dot(angle, angle)
+                  - self.w_roll_pitch * np.dot(roll_pitch, roll_pitch)
+                  - self.w_yaw * yaw**2
                   - self.w_omega * np.dot(omega, omega)
                   - self.w_eff * np.dot(thrust_err, thrust_err))
         return reward
