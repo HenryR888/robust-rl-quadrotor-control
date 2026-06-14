@@ -31,11 +31,11 @@ train_ppo(total_timesteps=2_000_000, n_envs=4)
 print("=== 4. PPOController evaluation ===")
 best = f"{MODEL_DIR}/best_model"
 final = f"{MODEL_DIR}/final_model"
-model_path = final if os.path.exists(final + ".zip") else best
+model_path = best if os.path.exists(best + ".zip") else final
 print(f"  Loading model from: {model_path}.zip")
 
 
-controller = PPOController(model_path=model_path, norm_path=f"{MODEL_DIR}/vec_normalize.pkl")
+controller = PPOController(model_path=best, norm_path=f"{MODEL_DIR}/best_vec_normalize.pkl")
 
 # initialise environment from HoverEnv: 
 env = HoverEnv(target=np.array([0.0, 0.0, 1.0]))

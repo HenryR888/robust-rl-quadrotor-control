@@ -7,7 +7,7 @@ import numpy as np
 import gymnasium as gym
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
-from stable_baselines3.common.callbacks import EvalCallback
+from stable_baselines3.common.callbacks import EvalCallback, BaseCallback
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 
@@ -26,6 +26,16 @@ class RelativeObsWrapper(gym.ObservationWrapper):
         obs = obs.copy()
         obs[0:3] = obs[0:3] - self.env.target
         return obs
+    
+class SaveNormalizeCallback(BaseCallback):
+    def __init__(self, vec_normalize_env, save_path, verbose=0):
+        super().__init__(verbose)
+        self.vec_normalize_env = vec_normalize_env
+        self.save_path = save_path
+
+    def _on_step(self) -> bool:
+        self.vec_normalize_env.save(self.save_path)
+        return True
 
 def train_ppo(total_timesteps: int = 2_000_000, n_envs: int =4):
 
@@ -37,6 +47,11 @@ def train_ppo(total_timesteps: int = 2_000_000, n_envs: int =4):
 
     eval_env = VecNormalize(DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv())]), norm_obs=True, norm_reward=False)
 
+    save_norm_callback = SaveNormalizeCallback(
+        vec_normalize_env=env,
+        save_path=os.path.join(MODEL_DIR, "best_vec_normalize.pkl")
+    )
+
     eval_callback = EvalCallback(
         eval_env,
         best_model_save_path=MODEL_DIR,
@@ -45,6 +60,7 @@ def train_ppo(total_timesteps: int = 2_000_000, n_envs: int =4):
         n_eval_episodes=10, # here we run 10 test episodes to obtain the mean reward
         deterministic=True, # we remove the noise during evaluation
         render=False,
+        callback_on_new_best=save_norm_callback
     )
 
     model = PPO(
