@@ -31,7 +31,7 @@ train_ppo(total_timesteps=2_000_000, n_envs=4)
 print("=== 4. PPOController evaluation ===")
 best = f"{MODEL_DIR}/best_model"
 final = f"{MODEL_DIR}/final_model"
-model_path = best if os.path.exists(best + ".zip") else final
+model_path = final if os.path.exists(final + ".zip") else best
 print(f"  Loading model from: {model_path}.zip")
 
 

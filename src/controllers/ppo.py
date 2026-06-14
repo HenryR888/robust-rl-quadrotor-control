@@ -94,5 +94,5 @@ class PPOController:
         relative_obs = obs.copy()
         relative_obs[0:3] = obs[0:3] - target
         obs_norm = self.env.normalize_obs(relative_obs)
-        action, _ = self.model.predict(relative_obs, deterministic=True) # here we take in the relative observation for our observation and pass that into our actor network, and output our [T,tau_x,tau_y,tau_z] action 
+        action, _ = self.model.predict(obs_norm, deterministic=True) # here we take in the relative observation for our observation and pass that into our actor network, and output our [T,tau_x,tau_y,tau_z] action 
         return action
