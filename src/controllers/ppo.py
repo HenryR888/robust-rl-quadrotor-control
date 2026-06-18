@@ -37,7 +37,7 @@ class SaveNormalizeCallback(BaseCallback):
         self.vec_normalize_env.save(self.save_path)
         return True
 
-def train_ppo(total_timesteps: int = 2_000_000, n_envs: int =4):
+def train_ppo(total_timesteps: int = 10_000_000, n_envs: int =4):
 
     check_env(HoverEnv(), warn=True)
 
