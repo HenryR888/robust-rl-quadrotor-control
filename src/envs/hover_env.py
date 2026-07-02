@@ -7,7 +7,7 @@ The agent (controller) observes the full 12-state and outputs [T,tau_x, tau_y, t
 
 We also add the ability to simulate stochastic wind disturbances using the following AR(1) process: 
 
-F_t = alpha.F_{t-1} + (1-alpha).F_mean + (k.F_magnitude).sqrt(1-alpha^2).epsilon_t, where epsilon_t ~ N(0,1), and alpha controls the temporal correlation
+F_t = alpha.F_{t-1} + (1-alpha).F_mean + (k.F_magnitude).sqrt(1-alpha^2).epsilon_t, where epsilon_t ~ N(0,1), and alpha controls the temporal correlation`
 - (k.F_magnitude) represents the variability of the wind about the mean wind force.
 - we note that: F_mean = F_magnitude * [cos(gamma_w)cos(beta_w), cos(gamma_w)sin(beta_w), sin(gamma_w)]
 
@@ -50,8 +50,10 @@ class HoverEnv(gym.Env):
         # have a statistically fair comparison between control methods (LQR, PPO) in their ability for robust stabilisation of the drone. We also add the 0.1 initially as a survival factor for early episodes of training
         self.w_pos = 1.0
         self.w_vel = 0.5
-        self.w_roll_pitch = 2.0
-        self.w_yaw = 8.0
+        # we remove the w_roll_pitch and w_yaw terms to maintain consistent reward design throughout the entire experiment, since the quadrotor may tilt into the wind to counter wind forces, and thus do 
+        # not want to penalise the controller for tilting into the wind for stochastic wind disturbances. Moreover, we want to maintain consistent reward design to remove confounding between baseline and disturbance conditions
+        #self.w_roll_pitch = 2.0
+        #self.w_yaw = 8.0
         self.w_omega = 2.0
         self.w_eff = 0.25
 
@@ -142,8 +144,6 @@ class HoverEnv(gym.Env):
         reward = (0.1
                   -self.w_pos * np.dot(pos-self.target, pos-self.target)
                   - self.w_vel * np.dot(vel, vel)
-                  - self.w_roll_pitch * np.dot(roll_pitch, roll_pitch)
-                  - self.w_yaw * yaw**2
                   - self.w_omega * np.dot(omega, omega)
                   - self.w_eff * np.dot(thrust_err, thrust_err))
         return reward
