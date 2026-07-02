@@ -7,7 +7,7 @@ The agent (controller) observes the full 12-state and outputs [T,tau_x, tau_y, t
 
 We also add the ability to simulate stochastic wind disturbances using the following AR(1) process: 
 
-F_t = alpha.F_{t-1} + (1-alpha).F_mean + (k.F_magnitude).sqrt(1-alpha^2).epsilon_t, where epsilon_t ~ N(0,1)
+F_t = alpha.F_{t-1} + (1-alpha).F_mean + (k.F_magnitude).sqrt(1-alpha^2).epsilon_t, where epsilon_t ~ N(0,1), and alpha controls the temporal correlation
 - (k.F_magnitude) represents the variability of the wind about the mean wind force.
 - we note that: F_mean = F_magnitude * [cos(gamma_w)cos(beta_w), cos(gamma_w)sin(beta_w), sin(gamma_w)]
 
