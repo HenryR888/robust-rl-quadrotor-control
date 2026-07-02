@@ -4,6 +4,16 @@ which shall allow our PID, LQR and PPO controllers to be compared within the sam
 
 The process works as follows: 
 The agent (controller) observes the full 12-state and outputs [T,tau_x, tau_y, tau_z]. The episode target here is for the drone to hover at a fixed position. 
+
+We also add the ability to simulate stochastic wind disturbances using the following AR(1) process: 
+
+F_t = alpha.F_{t-1} + (1-alpha).F_mean + (k.F_magnitude).sqrt(1-alpha^2).epsilon_t, where epsilon_t ~ N(0,1)
+- (k.F_magnitude) represents the variability of the wind about the mean wind force.
+- we note that: F_mean = F_magnitude * [cos(gamma_w)cos(beta_w), cos(gamma_w)sin(beta_w), sin(gamma_w)]
+
+Further, we note that beta_w ~ U(0,2pi) which represents the horizontal wind angle in spherical coords, which is drawn per seed.
+Moreover, gamma_w ~ U[-gamma_max, gamma_max] represents the wind elevation angle in spherical coords, which is drawn per seed. 
+
 '''
 
 import numpy as np
@@ -15,7 +25,11 @@ from quadrotor.simulator import rk4_method
 
 class HoverEnv(gym.Env):
 
-    def __init__(self, target: np.ndarray = np.array([0.0,0.0,1.0])):
+    def __init__(self, target: np.ndarray = np.array([0.0,0.0,1.0]),
+                wind_magnitude: float = 0.0,
+                k: float=0.15,
+                alpha: float = 0.98,
+                gamma_max: float = np.pi/12):
         super().__init__()
         self.params = Quadrotorparams()
         self.target = target
@@ -23,6 +37,12 @@ class HoverEnv(gym.Env):
         self.max_steps = 5000 # thus, the episode length will be 5s of hover time (I'm setting up a baseline where the drone is initiated in its hover position, and we check that it stays there)...!Note: adjust as necessary for tuning
         self.step_count = 0 # initiate step count at 0, and then we update it in step() function
         self.state = None 
+        self.wind_magnitude = wind_magnitude
+        self.k = k
+        self.alpha = alpha
+        self.gamma_max = gamma_max
+        self.F_mean = np.zeros(3)
+        self.F_wind = np.zeros(3)
 
         # weights for our quadratic reward function !Note: (still need to be tuned). 
         # We can start with the following reward function for PPO: r_t = 0.1 -(w_pos||p-p*||^2 + w_vel||v||^2 + w_roll_pitch||phi^2 + theta^2|| + w_yaw||psi^2|| + w_omega||omega||^2 + w_eff||u-u_hov||^2)
@@ -60,6 +80,14 @@ class HoverEnv(gym.Env):
         angle = self.np_random.uniform(-0.1,0.1, size=3)
         self.state = np.concatenate([pos, vel, angle, np.zeros(3)])
         self.step_count =0
+        beta_w = self.np_random.uniform(0.0, 2.0*np.pi)
+        gamma_w = self.np_random.uniform(-self.gamma_max, self.gamma_max)
+        self.F_mean = self.wind_magnitude*np.array([
+            np.cos(gamma_w)*np.cos(beta_w),
+            np.cos(gamma_w)*np.sin(beta_w),
+            np.sin(gamma_w)
+        ])
+        self.F_wind = self.F_mean.copy() # here we initialise the wind force as the average wind speed recorded 
         return self.state.copy(), {}
 
         #self.state = np.array([
@@ -77,6 +105,10 @@ class HoverEnv(gym.Env):
         u = np.clip(u,0.0,None) # ensure that u is greater than or eq to 0, otherwise return 0...since it cannot have negative thrust
 
         self.state = rk4_method(self.state, u, self.dt, self.params)
+        eps = self.np_random.standard_normal(3)
+        self.F_wind = self.alpha * self.F_wind + (1.0-self.alpha)*self.F_mean + (self.k*self.wind_magnitude*np.sqrt(1.0-self.alpha**2))*eps
+        # we then add the change in velocity (deltav) to our velocity values, which is given by a.dt = (F/m).dt. We note that adding the change in velocity here introduces 
+        self.state[3:6] += (self.F_wind/self.params.m)*self.dt 
         self.step_count += 1
 
         reward = self._compute_reward(thrust_tor_vec) # compute the reward as per below
