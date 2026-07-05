@@ -53,7 +53,7 @@ class HoverEnv(gym.Env):
         # we remove the w_roll_pitch to maintain consistent reward design throughout the entire experiment, since the quadrotor may tilt into the wind to counter wind forces, and thus do 
         # not want to penalise the controller for tilting into the wind for stochastic wind disturbances. Moreover, we want to maintain consistent reward design to remove confounding between baseline and disturbance conditions
         #self.w_roll_pitch = 2.0
-        self.w_yaw = 2.0
+        self.w_yaw = 4.0
         self.w_omega = 2.0
         self.w_eff = 0.25
 
