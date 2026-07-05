@@ -50,10 +50,10 @@ class HoverEnv(gym.Env):
         # have a statistically fair comparison between control methods (LQR, PPO) in their ability for robust stabilisation of the drone. We also add the 0.1 initially as a survival factor for early episodes of training
         self.w_pos = 1.0
         self.w_vel = 0.5
-        # we remove the w_roll_pitch and w_yaw terms to maintain consistent reward design throughout the entire experiment, since the quadrotor may tilt into the wind to counter wind forces, and thus do 
+        # we remove the w_roll_pitch to maintain consistent reward design throughout the entire experiment, since the quadrotor may tilt into the wind to counter wind forces, and thus do 
         # not want to penalise the controller for tilting into the wind for stochastic wind disturbances. Moreover, we want to maintain consistent reward design to remove confounding between baseline and disturbance conditions
         #self.w_roll_pitch = 2.0
-        #self.w_yaw = 8.0
+        self.w_yaw = 2.0
         self.w_omega = 2.0
         self.w_eff = 0.25
 
@@ -144,6 +144,7 @@ class HoverEnv(gym.Env):
         reward = (0.1
                   -self.w_pos * np.dot(pos-self.target, pos-self.target)
                   - self.w_vel * np.dot(vel, vel)
+                  - self.w_yaw*yaw**2
                   - self.w_omega * np.dot(omega, omega)
                   - self.w_eff * np.dot(thrust_err, thrust_err))
         return reward
