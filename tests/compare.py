@@ -117,3 +117,10 @@ def run_episode(controller, env: HoverEnv, seed: int, ic_type: str, approach_spe
         crashed=bool(terminated),
         episode_length=n,
     )
+
+# we run over all the seeds to produce different seeded episodeResults: 
+def run_scenario(controller, env_kwargs: dict, ic_type: str, approach_speed: float=0.0) -> list[EpisodeResult]:
+    return [
+        run_episode(controller, HoverEnv(target=TARGET, **env_kwargs), seed, ic_type, approach_speed)
+        for seed in seeds
+    ]
