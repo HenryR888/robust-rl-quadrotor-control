@@ -70,3 +70,50 @@ def _set_ic(env: HoverEnv, ic_type: str) -> np.ndarray:
         env.state[:] = 0.0
         env.state[2] = 0.05
     return env.state.copy()
+
+def run_episode(controller, env: HoverEnv, seed: int, ic_type: str, approach_speed: float = 0.0) -> EpisodeResult: 
+    obs, _ = env.reset(seed=seed)
+    if ic_type != "local":
+        obs = _set_ic(env, ic_type)
+    if approach_speed>0.0:
+        azimuth = env.np_random.uniform(0,2*np.pi)
+        elevation = env.np_random.uniform(-np.pi/4, np.pi/4)
+        env.state[3] = approach_speed*np.cos(elevation)*np.cos(azimuth)
+        env.state[4] = approach_speed*np.cos(elevation)*np.sin(azimuth)
+        env.state[5] = approach_speed*np.sin(elevation)
+        obs = env.state.copy()
+    controller.reset()
+
+    u_hover = np.array([env.params.m * env.params.g, 0.0, 0.0, 0.0])
+    pos_errors = []
+    efforts = []
+    terminated = False
+
+    for _ in range (env.max_steps):
+        action = controller.compute_action(obs, TARGET, env.dt)
+        obs, _, terminated, truncated, _ = env.step(action)
+        # we find the position error and the control effort: 
+        pos_errors.append(np.linalg.norm(obs[0:3]-TARGET))
+        efforts.append(float(np.sum((action-u_hover)**2)))
+        if terminated or truncated:
+            break
+    
+    pos_errors = np.array(pos_errors)
+    n = len(pos_errors)
+
+    settling_time = None
+    for i in range(n-settle_window + 1):
+        if np.all(pos_errors[i: i+settle_window] < settle_threshold):
+            settling_time = i*env.dt
+            break
+    
+    n_steady = min(steady_steps, n)
+    return EpisodeResult(
+        settling_time=settling_time,
+        # we find the mean error over the last steady_steps or the whole episode if it is shorter; the maximum error during the episode; and the mean control_effort during the episode
+        steady_state_error=float(np.mean(pos_errors[-n_steady:])),
+        peak_error=float(np.max(pos_errors)),
+        control_effort=float(np.mean(efforts)),
+        crashed=bool(terminated),
+        episode_length=n,
+    )
