@@ -124,3 +124,11 @@ def run_scenario(controller, env_kwargs: dict, ic_type: str, approach_speed: flo
         run_episode(controller, HoverEnv(target=TARGET, **env_kwargs), seed, ic_type, approach_speed)
         for seed in seeds
     ]
+
+def aggregate(results: list[EpisodeResult]) -> dict: 
+    settled = [r for r in results if r.settling_time is not None]
+    return {
+        "settle_rate": len(settled)/len(results),
+        "settle_mean": float(np.mean([r.settling_time for r in settled])) if settled else float("nan"),
+        
+    }
