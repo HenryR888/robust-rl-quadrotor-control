@@ -170,3 +170,26 @@ SCENARIOS = {
     "takeoff_calm": {"env_kwargs": {"wind_magnitude": 0.0}, "ic": "takeoff", "approach_speed": 0.0},
     "takeoff_wind": {"env_kwargs": {"wind_magnitude": 2.0}, "ic": "takeoff", "approach_speed": 0.0},
 }
+
+if __name__=="__main__":
+    params = Quadrotorparams()
+    controllers = {
+        "PID": CascadedPIDController(params),
+        "LQR": LQRController(params),
+        "PPO": PPOController(
+            model_path=f"{MODEL_DIR}/best_model",
+            norm_path=f"{MODEL_DIR}/best_vec_normalize.pkl"
+        ),
+    }
+
+    all_results: dict = {}
+    for scenario_name, configuration in SCENARIOS.items():
+        all_results[scenario_name] = {}
+        for controller_name, controller in controllers.items():
+            print(f"Running {controller_name:>3s} | {scenario_name}...", end=" ", flush=True)
+            results = run_scenario(controller, configuration["env_kwargs"], configuration["ic"], configuration["approach_speed"])
+            all_results[scenario_name][controller_name] = results
+            print(f"crash = {np.mean([r.crashed for r in results]):.0%}")
+    
+    print_table(all_results)
+
