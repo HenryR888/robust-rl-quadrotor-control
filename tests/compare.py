@@ -3,7 +3,7 @@ Here we have our comparison tests between PID, LQR and PPO across two scenarios 
 
 SCENARIO 1 (local): 
 Here we have the drone in a calm hover, initialised at +-0.3m from the target position. We use negligible wind of 0.0N as a baseline test, and then add the disturbance wind as defined in hover_env.py.
-We also include an embedded scenario here in which we have the quadrotor approaching the target position, initialised with an initial velocity, used to simulate the scenario where an operator is piloting the drone and wants the drone to reach hover position locally and stay there.
+We do not include the embedded approach scenario here because close to the target position, we assume that the operator would be flying at negligible speed. 
 
 SCENARIO 2 (longrange): 
 Here we have the drone initialised further away from the target position (approximately 5m away from the target position). Again, we use negligible wind of 0.0N as a baseline test, and then add the disturbance wind as defined in hover_env.py.
@@ -161,8 +161,6 @@ def print_table(all_results: dict):
 SCENARIOS = {
     "local_calm": {"env_kwargs": {"wind_magnitude": 0.0}, "ic": "local", "approach_speed": 0.0},
     "local_wind": {"env_kwargs": {"wind_magnitude": 2.0}, "ic": "local", "approach_speed": 0.0},
-    "local_approach_calm": {"env_kwargs": {"wind_magnitude": 0.0}, "ic": "local", "approach_speed": 2.0},
-    "local_approach_wind": {"env_kwargs": {"wind_magnitude": 2.0}, "ic": "local", "approach_speed": 2.0},
     "longrange_calm": {"env_kwargs": {"wind_magnitude": 0.0}, "ic": "longrange", "approach_speed": 0.0},
     "longrange_wind": {"env_kwargs": {"wind_magnitude": 2.0}, "ic": "longrange", "approach_speed": 0.0},
     "longrange_approach_calm": {"env_kwargs": {"wind_magnitude": 0.0}, "ic": "longrange", "approach_speed": 2.0},
