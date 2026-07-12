@@ -42,7 +42,7 @@ seeds = list(range(N_episodes))
 longrange_dist = 5.0 # (m) represnting the longrange scenario radius
 
 settle_threshold = 0.10 # (m)
-settle_window = 50 # number of steps (0.5s)
+settle_window = 500 # number of steps (5s)
 steady_steps = 500 # this represents the last 5s of that specific episode
 
 @dataclass
