@@ -9,7 +9,7 @@ from envs.hover_env import HoverEnv
 from controllers.pid import CascadedPIDController
 
 env_calm = HoverEnv(target=np.array([0.0,0.0,1.0])) # target here is 1.0m
-env_wind = HoverEnv(target=np.array([0.0,0.0,1.0]), wind_magnitude=0.0)
+env_wind = HoverEnv(target=np.array([0.0,0.0,1.0]), wind_magnitude=2.0)
 controller = CascadedPIDController(env_calm.params)
 
 # initialise environment from HoverEnv: 
@@ -30,9 +30,9 @@ for _ in range(env_calm.max_steps):
     obs, _, terminated, truncated, _ = env_calm.step(action)
     states_calm.append(obs)
     actions_calm.append(action.copy())
-    # comment out for tuning: 
+    #comment out for tuning: 
     #if terminated or truncated:
-       #break
+        #break
 
 states_calm = np.array(states_calm)
 actions_calm = np.array(actions_calm)
@@ -54,7 +54,7 @@ for _ in range(env_wind.max_steps):
     actions_wind.append(action.copy())
     # comment out for tuning: 
     #if terminated or truncated:
-       #break
+        #break
 
 states_wind = np.array(states_wind)
 actions_wind = np.array(actions_wind)
