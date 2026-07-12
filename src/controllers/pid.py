@@ -40,6 +40,9 @@ class CascadedPIDController:
         self.gains_z = PIDGains(kp=2.0,ki=0.0, kd=1.5, integral_limit=0.5) # TUNING COMPLETE
 
         # x and y axis position gains:
+        # For faster optimal conversion
+        # self.gains_x = PIDGains(kp=0.05,ki=0.002, kd=0.1, integral_limit=50.0) # TUNING COMPLETE
+        # self.gains_y = PIDGains(kp=0.05,ki=0.002, kd=0.1, integral_limit=50.0)
         self.gains_x = PIDGains(kp=0.02,ki=0.002, kd=0.05, integral_limit=100.0) # TUNING COMPLETE
         self.gains_y = PIDGains(kp=0.02,ki=0.002, kd=0.05, integral_limit=100.0) # TUNING COMPLETE
 
