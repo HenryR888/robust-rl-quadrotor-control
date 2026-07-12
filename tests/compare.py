@@ -125,10 +125,48 @@ def run_scenario(controller, env_kwargs: dict, ic_type: str, approach_speed: flo
         for seed in seeds
     ]
 
+# here we compute the summary stats for each controller on a particular scenario...we also want to filter out the episodes where the quadrotor never settled:
 def aggregate(results: list[EpisodeResult]) -> dict: 
     settled = [r for r in results if r.settling_time is not None]
     return {
         "settle_rate": len(settled)/len(results),
         "settle_mean": float(np.mean([r.settling_time for r in settled])) if settled else float("nan"),
-        
+        "settle_std": float(np.std([r.settling_time for r in settled])) if settled else float("nan"),
+        "ss_error_mean": float(np.mean([r.steady_state_error for r in results])),
+        "peak_error_mean": float(np.mean([r.peak_error for r in results])),
+        "crash_rate": float(np.mean([r.crashed for r in results])),
+        "effort_mean": float(np.mean([r.control_effort for r in results])),
     }
+
+def print_table(all_results: dict):
+    col_w = 25
+    metrics = [
+        ("settle_rate", "Settle Percentage"),
+        ("settle_mean", "Time to Settle (s)"),
+        ("settle_std", "Settle Std Deviation (s)"),
+        ("ss_error_mean", "Steady State Error (m)"),
+        ("peak_error_mean", "Peak Error (m)"),
+        ("crash_rate", "Crash Percentage"),
+        ("effort_mean", "Control Effort"),
+    ]
+    for scenario, ctrl_results in all_results.items():
+        print(f"\n{'='*80}\n Scenario: {scenario}\n{'='*80}")
+        header = f"{'Controller':<14}" + "".join(f"{m[1]:>{col_w}}" for m in metrics)
+        print(header)
+        print("-"*len(header))
+        for ctrl_name, results in ctrl_results.items():
+            agg = aggregate(results)
+            print(f"{ctrl_name:<14}" + "".join(f"{agg[m[0]]:>{col_w}.3f}" for m in metrics))
+
+SCENARIOS = {
+    "local_calm": {"env_kwargs": {"wind_magnitude": 0.0}, "ic": "local", "approach_speed": 0.0},
+    "local_wind": {"env_kwargs": {"wind_magnitude": 2.0}, "ic": "local", "approach_speed": 0.0},
+    "local_approach_calm": {"env_kwargs": {"wind_magnitude": 0.0}, "ic": "local", "approach_speed": 2.0},
+    "local_approach_wind": {"env_kwargs": {"wind_magnitude": 2.0}, "ic": "local", "approach_speed": 2.0},
+    "longrange_calm": {"env_kwargs": {"wind_magnitude": 0.0}, "ic": "longrange", "approach_speed": 0.0},
+    "longrange_wind": {"env_kwargs": {"wind_magnitude": 2.0}, "ic": "longrange", "approach_speed": 0.0},
+    "longrange_approach_calm": {"env_kwargs": {"wind_magnitude": 0.0}, "ic": "longrange", "approach_speed": 2.0},
+    "longrange_approach_wind": {"env_kwargs": {"wind_magnitude": 2.0}, "ic": "longrange", "approach_speed": 2.0},
+    "takeoff_calm": {"env_kwargs": {"wind_magnitude": 0.0}, "ic": "takeoff", "approach_speed": 0.0},
+    "takeoff_wind": {"env_kwargs": {"wind_magnitude": 2.0}, "ic": "takeoff", "approach_speed": 0.0},
+}
