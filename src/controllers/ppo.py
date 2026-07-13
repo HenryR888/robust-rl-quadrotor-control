@@ -136,6 +136,42 @@ def train_ppo_curriculum(
     model.save(os.path.join(PHASE2_DIR, "final_model"))
     print(f"Phase 2 Training is complete.")
 
+    # Phase 3 of training (stochastic wind of 2N and longrange scenario):
+
+    env3 = make_vec_env(
+        lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, reset_radius=5.0, reset_sphere=True)),
+        n_envs=n_envs
+    )
+    env3 = VecNormalize(env3, norm_obs=True, norm_reward=True, clip_obs=10.0)
+
+    eval_env3 = VecNormalize(
+        DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, reset_radius=5.0, reset_sphere=True))]),
+        norm_obs=True, norm_reward=False
+    )
+
+    save_norm3 = SaveNormalizeCallback(
+        vec_normalize_env=env3,
+        save_path=os.path.join(PHASE3_DIR, "best_vec_normalize.pkl")
+    )
+    eval_cb3 = EvalCallback(
+        eval_env3,
+        best_model_save_path=PHASE3_DIR,
+        log_path=LOG_DIR + "_phase3",
+        eval_freq=max(10_000 // n_envs, 1),
+        n_eval_episodes=10,
+        deterministic=True,
+        render=False,
+        callback_on_new_best=save_norm3
+    )
+
+    print("Starting Phase 3...Loading...")
+    model = PPO.load(os.path.join(PHASE2_DIR, "best_model"), env=env3)
+    model.learn(total_timesteps=phase3_timesteps, callback=eval_cb3, reset_num_timesteps=False)
+    env3.save(os.path.join(PHASE3_DIR, "vec_normalize.pkl"))
+    model.save(os.path.join(PHASE3_DIR, "final_model"))
+    print(f"Phase 3 Training is complete.")
+
+
 class PPOController:
 
     def __init__(self, model_path: str, norm_path: str):
