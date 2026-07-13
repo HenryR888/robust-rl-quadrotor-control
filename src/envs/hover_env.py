@@ -29,7 +29,9 @@ class HoverEnv(gym.Env):
                 wind_magnitude: float = 0.0,
                 k: float=0.15,
                 alpha: float = 0.98,
-                gamma_max: float = np.pi/12):
+                gamma_max: float = np.pi/12,
+                reset_radius: float = 0.3,
+                reset_sphere: bool = False):
         super().__init__()
         self.params = Quadrotorparams()
         self.target = target
@@ -41,6 +43,8 @@ class HoverEnv(gym.Env):
         self.k = k
         self.alpha = alpha
         self.gamma_max = gamma_max
+        self.reset_radius = reset_radius
+        self.reset_sphere = reset_sphere
         self.F_mean = np.zeros(3)
         self.F_wind = np.zeros(3)
 
@@ -76,8 +80,21 @@ class HoverEnv(gym.Env):
     # Define reset as per Gymnasium API: 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed) # !Note: we shall set a seed here later once we start at randomly initialised positions to ensure reproducibility
-        # we randomise the reset position so the drone starts off with non-zero error: 
-        pos = self.np_random.uniform(-0.3, 0.3, size=3)+np.array([0.0,0.0,1.0]) # here we start the drone around position [0,0,1] each reset
+        # we randomise the reset position so the drone starts off with non-zero error, depending on which phase of the PPO curriculum we are training: 
+        if self.reset_sphere:
+            sin_gamma = self.np_random.uniform(0.0, 1.0) # sin of elevation angle that drone spawns in 
+            cos_gamma = np.sqrt(1.00-sin_gamma**2)
+            beta = self.np_random.uniform(0.0, 2.0*np.pi) # this is the azimuth angle that the drone is spawned in at
+            offset = self.reset_radius * np.array([
+                cos_gamma*np.cos(beta),
+                cos_gamma*np.sin(beta),
+                sin_gamma
+            ])
+            pos = self.target + offset
+            pos[2] = max(pos[2], 0.5)
+        else: 
+            pos = self.np_random.uniform(-self.reset_radius, self.reset_radius, size=3) + self.target
+            pos[2] = max(pos[2], 0.3)
         vel = self.np_random.uniform(-0.1,0.1,size=3)
         angle = self.np_random.uniform(-0.1,0.1, size=3)
         self.state = np.concatenate([pos, vel, angle, np.zeros(3)])
