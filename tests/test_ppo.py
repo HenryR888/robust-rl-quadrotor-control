@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from stable_baselines3.common.env_checker import check_env
 
 from envs.hover_env import HoverEnv
-from controllers.ppo import train_ppo, PPOController, RelativeObsWrapper, MODEL_DIR
+from controllers.ppo import train_ppo, train_ppo_curriculum, PPOController, RelativeObsWrapper, MODEL_DIR
 
 
 print("=== 1. Gymnasium env. Check ===")
@@ -24,85 +24,108 @@ assert np.allclose(obs[0:3], expected_relative), f"Expected {expected_relative} 
 print(f"Relative pos at reset: {obs[0:3]}  (expected {expected_relative})")
 print("RelativeObsWrapper passed.\n")
 
-# we run a quick 50K timestep simulation to test that the environment and training pipeline works correctly without crashing: 
+# we run 20M timestep simulation to test that the environment and training pipeline works correctly without crashing: 
 train_ppo(total_timesteps=20_000_000, n_envs=4)
+train_ppo_curriculum(phase2_timesteps=20_000_000, phase3_timesteps=20_000_000, n_envs=4)
 
 
-print("=== 4. PPOController evaluation ===")
-best = f"{MODEL_DIR}/best_model"
-final = f"{MODEL_DIR}/final_model"
-model_path = best if os.path.exists(best + ".zip") else final
-print(f"  Loading model from: {model_path}.zip")
-
-
-controller = PPOController(model_path=best, norm_path=f"{MODEL_DIR}/best_vec_normalize.pkl")
-
-# initialise environment from HoverEnv: 
-env = HoverEnv(target=np.array([0.0, 0.0, 1.0]))
-obs, _ = env.reset()
-
-states = [obs.copy()]
-rewards = []
-
-for step in range(env.max_steps):
-    action = controller.compute_action(obs, env.target, env.dt)
-    obs, reward, terminated, truncated, _ = env.step(action)
-    states.append(obs.copy())
-    rewards.append(reward)
+print("=== 2. Phase 1 Evaluation (no wind, near target) ===")
+controller1 = PPOController(model_path="models/ppo/best_model", norm_path="models/ppo/best_vec_normalize.pkl")
+env1 = HoverEnv(target=np.array([0.0, 0.0, 1.0]))
+obs, _ = env1.reset(seed=0)
+states1, rewards1 = [obs.copy()], []
+for step in range(env1.max_steps):
+    action = controller1.compute_action(obs, env1.target, env1.dt)
+    obs, reward, terminated, truncated, _ = env1.step(action)
+    states1.append(obs.copy())
+    rewards1.append(reward)
     if terminated or truncated:
-        print(f"Episode ended at step {step + 1}: terminated={terminated}, truncated={truncated}")
+        print(f"Phase 1: ended at step {step+1} (terminated={terminated})")
         break
-else:
-    print(f"Completed all {env.max_steps} steps without termination.")
+    else: 
+        print(f"Phase 1: completed all {env1.max_steps} steps")
 
-states = np.array(states)
-t = np.arange(len(states)) * env.dt
-pos_error = np.linalg.norm(states[:, 0:3] - env.target, axis=1)
+print("=== 3. Phase 2 Evaluation (wind=2N, start 1.5m from target) ===")
+controller2 = PPOController(model_path="models/ppo_phase2/best_model", norm_path="models/ppo_phase2/best_vec_normalize.pkl")
+env2 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=2.0)
+obs, _ = env2.reset(seed=0)
+env2.state[0:3] = np.array([1.5, 0.0, 1.0])
+obs = env2.state.copy()
+states2, rewards2 = [obs.copy()], []
+for step in range(env2.max_steps):
+    action = controller2.compute_action(obs, env2.target, env2.dt)
+    obs, reward, terminated, truncated, _ = env2.step(action)
+    states2.append(obs.copy())
+    rewards2.append(reward)
+    if terminated or truncated:
+        print(f"Phase 2: ended at step {step+1} (terminated={terminated})")
+        break
+    else:
+        print(f"Phase 2: completed all {env2.max_steps} steps")
 
-print(f"Final Position: {states[-1, 0:3]}")
-print(f"Final Position error: {pos_error[-1]:.4f} m")
-print(f"Mean Position error for last 100 steps: {np.mean(pos_error[-100:]):.4f} m")
-print(f"Total reward: {sum(rewards):.2f}")
+print("=== 4. Phase 3 Evaluation (wind=2N, start 5m from target) ===")
+controller3 = PPOController(model_path="models/ppo_phase3/best_model", norm_path="models/ppo_phase3/best_vec_normalize.pkl")
+env3 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=2.0)
+obs, _ = env3.reset(seed=0)
+env3.state[0:3] = np.array([5.0, 0.0, 1.0])
+obs = env3.state.copy()
+states3, rewards3 = [obs.copy()], []
+for step in range(env3.max_steps):
+    action = controller3.compute_action(obs, env3.target, env3.dt)
+    obs, reward, terminated, truncated, _ = env3.step(action)
+    states3.append(obs.copy())
+    rewards3.append(reward)
+    if terminated or truncated:
+        print(f"Phase 3: ended at step {step+1} (terminated={terminated})")
+        break
+    else: 
+        print(f"Phase 3: completed all {env3.max_steps} steps")
 
-# plots: 
+def plot_phase(states, rewards, env, title):
+    states = np.array(states)
+    t = np.arange(len(states)) * env.dt
+    pos_error = np.linalg.norm(states[:, 0:3] -env.target, axis=1)
 
-fig, axes = plt.subplots(2, 2, figsize=(12, 8))
-fig.suptitle("PPO Controller: Hover Test (50k timestep training)", fontsize=13, fontweight='bold')
-ax = axes[0, 0]
-for i, label in enumerate(['x', 'y', 'z']):
-    ax.plot(t, states[:, i], label=label)
-ax.axhline(env.target[2], color='r', linestyle='--', linewidth=1, label='z target')
-ax.set_ylabel('Position (m)')
-ax.set_xlabel('Time (s)')
-ax.set_title('Position')
-ax.legend(fontsize=8)
-ax.grid(True, linestyle=':', alpha=0.6)
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    fig.suptitle(title, fontsize=13, fontweight='bold')
 
-ax = axes[0, 1]
-ax.plot(t, pos_error, color='steelblue')
-ax.set_ylabel('||p - p*|| (m)')
-ax.set_xlabel('Time (s)')
-ax.set_title('Position Error')
-ax.grid(True, linestyle=':', alpha=0.6)
+    ax = axes[0, 0]
+    for i, label in enumerate(['x', 'y', 'z']):
+        ax.plot(t, states[:, i], label=label)
+    ax.axhline(env.target[2], color='r', linestyle='--', linewidth=1, label='z target')
+    ax.set_ylabel('Position (m)')
+    ax.set_xlabel('Time (s)')
+    ax.set_title('Position')
+    ax.legend(fontsize=8)
+    ax.grid(True, linestyle=':', alpha=0.6)
 
-ax = axes[1, 0]
-for i, label in [( 6, r'$\phi$ roll'), (7, r'$\theta$ pitch'), (8, r'$\psi$ yaw')]:
-    ax.plot(t, states[:, i], label=label)
-ax.axhline(0.0, color='r', linestyle='--', linewidth=1)
-ax.set_ylabel('Euler Angles (rad)')
-ax.set_xlabel('Time (s)')
-ax.set_title('Roll, Pitch, Yaw')
-ax.legend(fontsize=8)
-ax.grid(True, linestyle=':', alpha=0.6)
+    ax = axes[0, 1]
+    ax.plot(t, pos_error, color='steelblue')
+    ax.set_ylabel('||p - p*|| (m)')
+    ax.set_xlabel('Time (s)')
+    ax.set_title('Position Error')
+    ax.grid(True, linestyle=':', alpha=0.6)
 
-ax = axes[1, 1]
-ax.plot(t[1:], rewards, color='steelblue')
-ax.set_ylabel('Reward')
-ax.set_xlabel('Time (s)')
-ax.set_title('Per-step Reward')
-ax.grid(True, linestyle=':', alpha=0.6)
+    ax = axes[1, 0]
+    for i, label in [(6, r'$\phi$ roll'), (7, r'$\theta$ pitch'), (8, r'$\psi$ yaw')]:
+        ax.plot(t, states[:, i], label=label)
+    ax.axhline(0.0, color='r', linestyle='--', linewidth=1)
+    ax.set_ylabel('Euler Angles (rad)')
+    ax.set_xlabel('Time (s)')
+    ax.set_title('Roll, Pitch, Yaw')
+    ax.legend(fontsize=8)   
+    ax.grid(True, linestyle=':', alpha=0.6)
 
-plt.tight_layout()
-plt.show()
+    ax = axes[1, 1]
+    ax.plot(t[1:], rewards, color='steelblue')
+    ax.set_ylabel('Reward')
+    ax.set_xlabel('Time (s)')
+    ax.set_title('Per-step Reward')
+    ax.grid(True, linestyle=':', alpha=0.6)
 
+    plt.tight_layout()
+    plt.show()
 
+plot_phase(states1, rewards1, env1, "Phase 1: No Wind, Near Target")
+plot_phase(states2, rewards2, env2, "Phase 2: Wind=2N, Start 1.5m from Target")
+plot_phase(states3, rewards3, env3, "Phase 3: Wind=2N, Start 5m from Target")
