@@ -26,7 +26,7 @@ print("RelativeObsWrapper passed.\n")
 
 # we run 20M timestep simulation to test that the environment and training pipeline works correctly without crashing: 
 train_ppo(total_timesteps=20_000_000, n_envs=4)
-train_ppo_curriculum(phase2_timesteps=20_000_000, phase3_timesteps=20_000_000, n_envs=4)
+#train_ppo_curriculum(phase2_timesteps=20_000_000, phase3_timesteps=20_000_000, n_envs=4)
 
 
 print("=== 2. Phase 1 Evaluation (no wind, near target) ===")
@@ -42,8 +42,8 @@ for step in range(env1.max_steps):
     if terminated or truncated:
         print(f"Phase 1: ended at step {step+1} (terminated={terminated})")
         break
-    else: 
-        print(f"Phase 1: completed all {env1.max_steps} steps")
+else: 
+    print(f"Phase 1: completed all {env1.max_steps} steps")
 
 print("=== 3. Phase 2 Evaluation (wind=2N, start 1.5m from target) ===")
 controller2 = PPOController(model_path="models/ppo_phase2/best_model", norm_path="models/ppo_phase2/best_vec_normalize.pkl")
@@ -60,8 +60,8 @@ for step in range(env2.max_steps):
     if terminated or truncated:
         print(f"Phase 2: ended at step {step+1} (terminated={terminated})")
         break
-    else:
-        print(f"Phase 2: completed all {env2.max_steps} steps")
+else:
+    print(f"Phase 2: completed all {env2.max_steps} steps")
 
 print("=== 4. Phase 3 Evaluation (wind=2N, start 5m from target) ===")
 controller3 = PPOController(model_path="models/ppo_phase3/best_model", norm_path="models/ppo_phase3/best_vec_normalize.pkl")

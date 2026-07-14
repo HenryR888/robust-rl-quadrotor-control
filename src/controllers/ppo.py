@@ -107,12 +107,17 @@ def train_ppo_curriculum(
         lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, reset_radius=1.5)),
         n_envs = n_envs
     )
-    env2 = VecNormalize(env2, norm_obs=True, norm_reward=True, clip_obs=10.0)
+    env2 = VecNormalize.load("models/ppo/vec_normalize.pkl", env2)
+    env2.training = True
+    env2.norm_reward = True
+    env2.clip_obs = 10.0
 
-    eval_env2 = VecNormalize(
+    eval_env2 = VecNormalize.load(
+        "models/ppo/vec_normalize.pkl",
         DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, reset_radius=1.5))]),
-        norm_obs=True, norm_reward=False
     )
+    eval_env2.training = False
+    eval_env2.norm_reward = False
 
     save_norm2 = SaveNormalizeCallback(
         vec_normalize_env=env2,
@@ -142,12 +147,17 @@ def train_ppo_curriculum(
         lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, reset_radius=5.0, reset_sphere=True)),
         n_envs=n_envs
     )
-    env3 = VecNormalize(env3, norm_obs=True, norm_reward=True, clip_obs=10.0)
+    env3 = VecNormalize.load("models/ppo_phase2/vec_normalize.pkl", env3)
+    env3.training=True
+    env3.norm_reward = True
+    env3.clip_obs = 10.0
 
-    eval_env3 = VecNormalize(
-        DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, reset_radius=5.0, reset_sphere=True))]),
-        norm_obs=True, norm_reward=False
+    eval_env3 = VecNormalize.load(
+        "models/ppo_phase2/vec_normalize.pkl",
+        DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, reset_radius=5.0, reset_sphere=True))])
     )
+    eval_env3.training = False
+    eval_env3.norm_reward = False
 
     save_norm3 = SaveNormalizeCallback(
         vec_normalize_env=env3,
