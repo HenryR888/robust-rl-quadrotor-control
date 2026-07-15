@@ -45,12 +45,10 @@ for step in range(env1.max_steps):
 else: 
     print(f"Phase 1: completed all {env1.max_steps} steps")
 
-print("=== 3. Phase 2 Evaluation (wind=2N, start 1.5m from target) ===")
+print("=== 3. Phase 2 Evaluation (wind=2N randomized, start near target) ===")
 controller2 = PPOController(model_path="models/ppo_phase2/best_model", norm_path="models/ppo_phase2/best_vec_normalize.pkl")
 env2 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=2.0)
 obs, _ = env2.reset(seed=0)
-env2.state[0:3] = np.array([1.5, 0.0, 1.0])
-obs = env2.state.copy()
 states2, rewards2 = [obs.copy()], []
 for step in range(env2.max_steps):
     action = controller2.compute_action(obs, env2.target, env2.dt)
@@ -63,11 +61,11 @@ for step in range(env2.max_steps):
 else:
     print(f"Phase 2: completed all {env2.max_steps} steps")
 
-print("=== 4. Phase 3 Evaluation (wind=2N, start 5m from target) ===")
+print("=== 4. Phase 3 Evaluation (wind=2N randomized, start 1.5m from target) ===")
 controller3 = PPOController(model_path="models/ppo_phase3/best_model", norm_path="models/ppo_phase3/best_vec_normalize.pkl")
 env3 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=2.0)
 obs, _ = env3.reset(seed=0)
-env3.state[0:3] = np.array([5.0, 0.0, 1.0])
+env3.state[0:3] = np.array([1.5, 0.0, 1.0])
 obs = env3.state.copy()
 states3, rewards3 = [obs.copy()], []
 for step in range(env3.max_steps):
@@ -80,6 +78,24 @@ for step in range(env3.max_steps):
         break
 else: 
     print(f"Phase 3: completed all {env3.max_steps} steps")
+
+print("=== 5. Phase 4 Evaluation (wind=2N randomized, start 5m from target) ===")
+controller4 = PPOController(model_path="models/ppo_phase4/best_model", norm_path="models/ppo_phase4/best_vec_normalize.pkl")
+env4 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=2.0)
+obs, _ = env4.reset(seed=0)
+env4.state[0:3] = np.array([5.0, 0.0, 1.0])
+obs = env4.state.copy()
+states4, rewards4 = [obs.copy()], []
+for step in range(env4.max_steps):
+    action = controller4.compute_action(obs, env4.target, env4.dt)
+    obs, reward, terminated, truncated, _ = env4.step(action)
+    states4.append(obs.copy())
+    rewards4.append(reward)
+    if terminated or truncated:
+        print(f"Phase 4: ended at step {step+1} (terminated={terminated})")
+        break
+else: 
+    print(f"Phase 4: completed all {env4.max_steps} steps")
 
 def plot_phase(states, rewards, env, title):
     states = np.array(states)
@@ -127,5 +143,6 @@ def plot_phase(states, rewards, env, title):
     plt.show()
 
 plot_phase(states1, rewards1, env1, "Phase 1: No Wind, Near Target")
-plot_phase(states2, rewards2, env2, "Phase 2: Wind=2N, Start 1.5m from Target")
-plot_phase(states3, rewards3, env3, "Phase 3: Wind=2N, Start 5m from Target")
+plot_phase(states2, rewards2, env2, "Phase 2: Wind=2N Randomized, Near Target")
+plot_phase(states3, rewards3, env3, "Phase 3: Wind=2N Randomized, Start 1.5m from Target")
+plot_phase(states4, rewards4, env4, "Phase 4: Wind=2N Randomized, Start 5m from Target")

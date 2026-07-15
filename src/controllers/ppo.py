@@ -209,6 +209,7 @@ def train_ppo_curriculum(
     )
     eval_cb4 = EvalCallback(
         eval_env4,
+        best_model_save_path=PHASE4_DIR,
         log_path=LOG_DIR + "_phase4",
         eval_freq=max(10_000 // n_envs, 1), # we run an evaluation to update the model every 10000 time steps.
         n_eval_episodes=10, # here we run 10 test episodes to obtain the mean reward
