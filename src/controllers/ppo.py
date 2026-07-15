@@ -88,23 +88,27 @@ def train_ppo(total_timesteps: int = 20_000_000, n_envs: int =4):
     return model
 
 def train_ppo_curriculum(
-        # for phase2 of training we add another 20M timesteps and increase the reset distance to be +-1.5m away from target, with 2N of stochastic wind:
+        # for phase2 of training we add another 20M timesteps and keep the distance away to be +-0.3m away from target, but with up to 2N of stochastic wind:
         phase2_timesteps: int = 20_000_000, 
-        # and then for phase3 of training, we add another 20M timesteps and increase the reset distance to be +-5m away from target, with 2N of stochastic AR(1) wind:
+        # and then for phase3 of training, we add another 20M timesteps and increase the reset distance to be +-1.5m away from target, with up to 2N of stochastic AR(1) wind:
         phase3_timesteps: int = 20_000_000,
+        # finally we add a fourth phase of 20M timesteps which covers the longrange scenario and we vary the wind up to 2N stochastically: 
+        phase4_timesteps: int = 20_000_000,
         n_envs: int = 4,
         base_model_path: str = "models/ppo/best_model",
 ): # after our base model finishes, we take that model, and train 20M timesteps (which is phase2 best_model). Upon completion, we take phase2_best_model and use that as the base model for phase3 to train on. This is called curriculum based training. 
     PHASE2_DIR = "models/ppo_phase2"
     PHASE3_DIR = "models/ppo_phase3"
+    PHASE4_DIR = "models/ppo_phase4"
     os.makedirs(PHASE2_DIR, exist_ok=True)
     os.makedirs(PHASE3_DIR, exist_ok=True)
+    os.makedirs(PHASE4_DIR, exist_ok=True)
 
-    # Phase 2 of training (stochastic wind of 2N and medium range):
+    # Phase 2 of training (stochastic wind of varying magnitude (up to 2N) and local range):
 
     # here we run n_envs in parallel to sample much for data for PPO to train on:
     env2 = make_vec_env(
-        lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, reset_radius=1.5)),
+        lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, wind_randomize=True, reset_radius=0.3)),
         n_envs = n_envs
     )
     env2 = VecNormalize.load("models/ppo/vec_normalize.pkl", env2)
@@ -114,7 +118,7 @@ def train_ppo_curriculum(
 
     eval_env2 = VecNormalize.load(
         "models/ppo/vec_normalize.pkl",
-        DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, reset_radius=1.5))]),
+        DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, wind_randomize=True, reset_radius=0.3))]),
     )
     eval_env2.training = False
     eval_env2.norm_reward = False
@@ -141,10 +145,10 @@ def train_ppo_curriculum(
     model.save(os.path.join(PHASE2_DIR, "final_model"))
     print(f"Phase 2 Training is complete.")
 
-    # Phase 3 of training (stochastic wind of 2N and longrange scenario):
+    # Phase 3 of training (stochastic wind of up to 2N and medium range):
 
     env3 = make_vec_env(
-        lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, reset_radius=5.0, reset_sphere=True)),
+        lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, wind_randomize=True, reset_radius=1.5)),
         n_envs=n_envs
     )
     env3 = VecNormalize.load("models/ppo_phase2/vec_normalize.pkl", env3)
@@ -154,7 +158,7 @@ def train_ppo_curriculum(
 
     eval_env3 = VecNormalize.load(
         "models/ppo_phase2/vec_normalize.pkl",
-        DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, reset_radius=5.0, reset_sphere=True))])
+        DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, wind_randomize=True, reset_radius=1.5))])
     )
     eval_env3.training = False
     eval_env3.norm_reward = False
@@ -167,9 +171,9 @@ def train_ppo_curriculum(
         eval_env3,
         best_model_save_path=PHASE3_DIR,
         log_path=LOG_DIR + "_phase3",
-        eval_freq=max(10_000 // n_envs, 1),
-        n_eval_episodes=10,
-        deterministic=True,
+        eval_freq=max(10_000 // n_envs, 1), # we run an evaluation to update the model every 10000 time steps.
+        n_eval_episodes=10, # here we run 10 test episodes to obtain the mean reward
+        deterministic=True, # we remove the stochastic distribution (Gaussian in this case) when producing the output of our Net.
         render=False,
         callback_on_new_best=save_norm3
     )
@@ -180,6 +184,44 @@ def train_ppo_curriculum(
     env3.save(os.path.join(PHASE3_DIR, "vec_normalize.pkl"))
     model.save(os.path.join(PHASE3_DIR, "final_model"))
     print(f"Phase 3 Training is complete.")
+
+    # Phase 4 of training (stochastic wind of up to 2N and longrange scenario):
+
+    env4 = make_vec_env(
+        lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, wind_randomize=True, reset_radius=5.0, reset_sphere=True)),
+        n_envs=n_envs
+    )
+    env4 = VecNormalize.load("models/ppo_phase3/vec_normalize.pkl", env4)
+    env4.training = True
+    env4.norm_reward = True
+    env4.clip_obs = 10.0
+
+    eval_env4 = VecNormalize.load(
+        "models/ppo_phase3/vec_normalize.pkl",
+        DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, wind_randomize=True, reset_radius=5.0, reset_sphere=True))])
+    )
+    eval_env4.training = False
+    eval_env4.norm_reward = False
+
+    save_norm4 = SaveNormalizeCallback(
+        vec_normalize_env=env4,
+        save_path=os.path.join(PHASE4_DIR, "best_vec_normalize.pkl")
+    )
+    eval_cb4 = EvalCallback(
+        eval_env4,
+        log_path=LOG_DIR + "_phase4",
+        eval_freq=max(10_000 // n_envs, 1), # we run an evaluation to update the model every 10000 time steps.
+        n_eval_episodes=10, # here we run 10 test episodes to obtain the mean reward
+        deterministic=True,render=False, # we remove the stochastic distribution (Gaussian in this case) when producing the output of our Net.
+        callback_on_new_best=save_norm4
+    )
+
+    print("Starting Phase 4...Loading...")
+    model = PPO.load(os.path.join(PHASE3_DIR, "best_model"), env=env4)
+    model.learn(total_timesteps=phase4_timesteps, callback=eval_cb4, reset_num_timesteps=False)
+    env4.save(os.path.join(PHASE4_DIR, "vec_normalize.pkl"))
+    model.save(os.path.join(PHASE4_DIR, "final_model"))
+    print("Phase 4 Training is complete.")
 
 
 class PPOController:

@@ -27,6 +27,7 @@ class HoverEnv(gym.Env):
 
     def __init__(self, target: np.ndarray = np.array([0.0,0.0,1.0]),
                 wind_magnitude: float = 0.0,
+                wind_randomize: bool = False,
                 k: float=0.15,
                 alpha: float = 0.98,
                 gamma_max: float = np.pi/12,
@@ -40,6 +41,8 @@ class HoverEnv(gym.Env):
         self.step_count = 0 # initiate step count at 0, and then we update it in step() function
         self.state = None 
         self.wind_magnitude = wind_magnitude
+        self.wind_magnitude_max = wind_magnitude
+        self.wind_randomize = wind_randomize
         self.k = k
         self.alpha = alpha
         self.gamma_max = gamma_max
@@ -101,6 +104,9 @@ class HoverEnv(gym.Env):
         self.step_count =0
         beta_w = self.np_random.uniform(0.0, 2.0*np.pi)
         gamma_w = self.np_random.uniform(-self.gamma_max, self.gamma_max)
+        # here we add for Phase2 of PPO the option to sample wind magnitude uniformly for more gradual curriculum training:
+        if self.wind_randomize:
+            self.wind_magnitude = self.np_random.uniform(0.0, self.wind_magnitude_max)
         self.F_mean = self.wind_magnitude*np.array([
             np.cos(gamma_w)*np.cos(beta_w),
             np.cos(gamma_w)*np.sin(beta_w),

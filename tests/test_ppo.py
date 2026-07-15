@@ -25,8 +25,8 @@ print(f"Relative pos at reset: {obs[0:3]}  (expected {expected_relative})")
 print("RelativeObsWrapper passed.\n")
 
 # we run 20M timestep simulation to test that the environment and training pipeline works correctly without crashing: 
-train_ppo(total_timesteps=20_000_000, n_envs=4)
-#train_ppo_curriculum(phase2_timesteps=20_000_000, phase3_timesteps=20_000_000, n_envs=4)
+#train_ppo(total_timesteps=20_000_000, n_envs=4)
+train_ppo_curriculum(phase2_timesteps=20_000_000, phase3_timesteps=20_000_000, phase4_timesteps=20_000_000, n_envs=4)
 
 
 print("=== 2. Phase 1 Evaluation (no wind, near target) ===")
@@ -78,8 +78,8 @@ for step in range(env3.max_steps):
     if terminated or truncated:
         print(f"Phase 3: ended at step {step+1} (terminated={terminated})")
         break
-    else: 
-        print(f"Phase 3: completed all {env3.max_steps} steps")
+else: 
+    print(f"Phase 3: completed all {env3.max_steps} steps")
 
 def plot_phase(states, rewards, env, title):
     states = np.array(states)
