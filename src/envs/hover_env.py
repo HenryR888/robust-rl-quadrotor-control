@@ -52,7 +52,7 @@ class HoverEnv(gym.Env):
         self.F_wind = np.zeros(3)
 
         # weights for our quadratic reward function !Note: (still need to be tuned). 
-        # We can start with the following reward function for PPO: r_t = 0.1 -(w_pos||p-p*||^2 + w_vel||v||^2 + w_roll_pitch||phi^2 + theta^2|| + w_yaw||psi^2|| + w_omega||omega||^2 + w_eff||u-u_hov||^2)
+        # We can start with the following reward function for PPO: r_t = 0.1 -(w_pos||p-p*||^2 + w_vel||v||^2 + w_yaw||psi^2|| + w_omega||omega||^2 + w_eff||u-u_hov||^2)
         # the reasoning for this reward function is it follows a similar mechanism to the LQR (Quadratic) cost function, which is a quadratic cost function dependent on performance and control effort. I am trying to minimise variation here so we can
         # have a statistically fair comparison between control methods (LQR, PPO) in their ability for robust stabilisation of the drone. We also add the 0.1 initially as a survival factor for early episodes of training
         self.w_pos = 1.0

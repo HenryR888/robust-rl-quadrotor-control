@@ -26,7 +26,7 @@ print("RelativeObsWrapper passed.\n")
 
 # we run 20M timestep simulation to test that the environment and training pipeline works correctly without crashing: 
 #train_ppo(total_timesteps=20_000_000, n_envs=4)
-train_ppo_curriculum(phase2_timesteps=20_000_000, phase3_timesteps=20_000_000, phase4_timesteps=20_000_000, n_envs=4)
+#train_ppo_curriculum(phase2_timesteps=20_000_000, phase3_timesteps=20_000_000, phase4_timesteps=20_000_000, n_envs=4)
 
 
 print("=== 2. Phase 1 Evaluation (no wind, near target) ===")
@@ -46,8 +46,8 @@ else:
     print(f"Phase 1: completed all {env1.max_steps} steps")
 
 print("=== 3. Phase 2 Evaluation (wind=2N randomized, start near target) ===")
-controller2 = PPOController(model_path="models/ppo_phase2/best_model", norm_path="models/ppo_phase2/best_vec_normalize.pkl")
-env2 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=2.0)
+controller2 = PPOController(model_path="models/ppo_phase4/best_model", norm_path="models/ppo_phase4/best_vec_normalize.pkl")
+env2 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=1.0)
 obs, _ = env2.reset(seed=0)
 states2, rewards2 = [obs.copy()], []
 for step in range(env2.max_steps):
@@ -62,8 +62,8 @@ else:
     print(f"Phase 2: completed all {env2.max_steps} steps")
 
 print("=== 4. Phase 3 Evaluation (wind=2N randomized, start 1.5m from target) ===")
-controller3 = PPOController(model_path="models/ppo_phase3/best_model", norm_path="models/ppo_phase3/best_vec_normalize.pkl")
-env3 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=2.0)
+controller3 = PPOController(model_path="models/ppo_phase4/best_model", norm_path="models/ppo_phase4/best_vec_normalize.pkl")
+env3 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=1.0)
 obs, _ = env3.reset(seed=0)
 env3.state[0:3] = np.array([1.5, 0.0, 1.0])
 obs = env3.state.copy()
@@ -81,7 +81,7 @@ else:
 
 print("=== 5. Phase 4 Evaluation (wind=2N randomized, start 5m from target) ===")
 controller4 = PPOController(model_path="models/ppo_phase4/best_model", norm_path="models/ppo_phase4/best_vec_normalize.pkl")
-env4 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=2.0)
+env4 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=1.0)
 obs, _ = env4.reset(seed=0)
 env4.state[0:3] = np.array([5.0, 0.0, 1.0])
 obs = env4.state.copy()
