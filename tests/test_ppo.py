@@ -26,7 +26,7 @@ print("RelativeObsWrapper passed.\n")
 
 # we run 20M timestep simulation to test that the environment and training pipeline works correctly without crashing: 
 #train_ppo(total_timesteps=20_000_000, n_envs=4)
-#train_ppo_curriculum(phase2_timesteps=20_000_000, phase3_timesteps=20_000_000, phase4_timesteps=20_000_000, n_envs=4)
+train_ppo_curriculum(phase2_timesteps=20_000_000, phase3_timesteps=20_000_000, phase4_timesteps=20_000_000, phase5_timesteps=20_000_000, n_envs=4)
 
 
 print("=== 2. Phase 1 Evaluation (no wind, near target) ===")
@@ -45,10 +45,12 @@ for step in range(env1.max_steps):
 else: 
     print(f"Phase 1: completed all {env1.max_steps} steps")
 
-print("=== 3. Phase 2 Evaluation (wind=2N randomized, start near target) ===")
-controller2 = PPOController(model_path="models/ppo_phase4/best_model", norm_path="models/ppo_phase4/best_vec_normalize.pkl")
-env2 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=1.0)
+print("=== 3. Phase 2 Evaluation (calm, start 1.5m from target) ===")
+controller2 = PPOController(model_path="models/ppo_phase2/best_model", norm_path="models/ppo_phase2/best_vec_normalize.pkl")
+env2 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=0.0)
 obs, _ = env2.reset(seed=0)
+env2.state[0:3] = np.array([1.5, 0.0, 1.0])
+obs = env2.state.copy()
 states2, rewards2 = [obs.copy()], []
 for step in range(env2.max_steps):
     action = controller2.compute_action(obs, env2.target, env2.dt)
@@ -61,9 +63,9 @@ for step in range(env2.max_steps):
 else:
     print(f"Phase 2: completed all {env2.max_steps} steps")
 
-print("=== 4. Phase 3 Evaluation (wind=2N randomized, start 1.5m from target) ===")
-controller3 = PPOController(model_path="models/ppo_phase4/best_model", norm_path="models/ppo_phase4/best_vec_normalize.pkl")
-env3 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=1.0)
+print("=== 4. Phase 3 Evaluation (wind=2N, start 1.5m from target) ===")
+controller3 = PPOController(model_path="models/ppo_phase3/best_model", norm_path="models/ppo_phase3/best_vec_normalize.pkl")
+env3 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=2.0)
 obs, _ = env3.reset(seed=0)
 env3.state[0:3] = np.array([1.5, 0.0, 1.0])
 obs = env3.state.copy()
@@ -79,9 +81,9 @@ for step in range(env3.max_steps):
 else: 
     print(f"Phase 3: completed all {env3.max_steps} steps")
 
-print("=== 5. Phase 4 Evaluation (wind=2N randomized, start 5m from target) ===")
+print("=== 5. Phase 4 Evaluation (calm, start 5m from target) ===")
 controller4 = PPOController(model_path="models/ppo_phase4/best_model", norm_path="models/ppo_phase4/best_vec_normalize.pkl")
-env4 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=1.0)
+env4 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=0.0)
 obs, _ = env4.reset(seed=0)
 env4.state[0:3] = np.array([5.0, 0.0, 1.0])
 obs = env4.state.copy()
@@ -96,6 +98,28 @@ for step in range(env4.max_steps):
         break
 else: 
     print(f"Phase 4: completed all {env4.max_steps} steps")
+
+print("=== 6. Phase 5 Evaluation (wind=2N, start 5m from target) ===")
+controller5 = PPOController(model_path="models/ppo_phase5/best_model", norm_path="models/ppo_phase5/best_vec_normalize.pkl")
+env5 = HoverEnv(target=np.array([0.0, 0.0, 1.0]), wind_magnitude=2.0)
+obs, _ = env5.reset(seed=0)
+env5.state[0:3] = np.array([5.0, 0.0, 1.0])
+obs = env5.state.copy()
+states5, rewards5 = [obs.copy()], []
+for step in range(env5.max_steps):
+    action = controller5.compute_action(obs, env5.target, env5.dt)
+    obs, reward, terminated, truncated, _ = env5.step(action)
+    states5.append(obs.copy())
+    rewards5.append(reward)
+    if terminated or truncated:
+        print(f"Phase 5: ended at step {step+1} (terminated={terminated})")
+        break
+else:
+    print(f"Phase 5: completed all {env5.max_steps} steps")
+
+
+
+
 
 def plot_phase(states, rewards, env, title):
     states = np.array(states)
@@ -143,6 +167,7 @@ def plot_phase(states, rewards, env, title):
     plt.show()
 
 plot_phase(states1, rewards1, env1, "Phase 1: No Wind, Near Target")
-plot_phase(states2, rewards2, env2, "Phase 2: Wind=2N Randomized, Near Target")
-plot_phase(states3, rewards3, env3, "Phase 3: Wind=2N Randomized, Start 1.5m from Target")
-plot_phase(states4, rewards4, env4, "Phase 4: Wind=2N Randomized, Start 5m from Target")
+plot_phase(states2, rewards2, env2, "Phase 2: Calm, Start 1.5m from Target")
+plot_phase(states3, rewards3, env3, "Phase 3: Wind=2N, Start 1.5m from Target")
+plot_phase(states4, rewards4, env4, "Phase 4: Calm, Start 5m from Target")
+plot_phase(states5, rewards5, env5, "Phase 5: Wind=2N, Start 5m from Target")
