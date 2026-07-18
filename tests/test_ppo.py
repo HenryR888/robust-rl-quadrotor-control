@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from stable_baselines3.common.env_checker import check_env
 
 from envs.hover_env import HoverEnv
-from controllers.ppo import train_ppo, train_ppo_curriculum, PPOController, RelativeObsWrapper, MODEL_DIR
+from controllers.ppo import train_ppo, train_ppo_curriculum, train_ppo_curriculum_from_phase3, PPOController, RelativeObsWrapper, MODEL_DIR
 
 
 print("=== 1. Gymnasium env. Check ===")
@@ -26,7 +26,8 @@ print("RelativeObsWrapper passed.\n")
 
 # we run 20M timestep simulation to test that the environment and training pipeline works correctly without crashing: 
 #train_ppo(total_timesteps=20_000_000, n_envs=4)
-train_ppo_curriculum(phase2_timesteps=20_000_000, phase3_timesteps=20_000_000, phase4_timesteps=20_000_000, phase5_timesteps=20_000_000, n_envs=4)
+#train_ppo_curriculum(phase2_timesteps=20_000_000, phase3_timesteps=20_000_000, phase4_timesteps=20_000_000, phase5_timesteps=20_000_000, n_envs=4)
+train_ppo_curriculum_from_phase3(phase3_timesteps=20_000_000, phase4_timesteps=20_000_000, phase5_timesteps=20_000_000, n_envs=4)
 
 
 print("=== 2. Phase 1 Evaluation (no wind, near target) ===")
