@@ -136,10 +136,14 @@ class HoverEnv(gym.Env):
         self.state[3:6] += (self.F_wind/self.params.m)*self.dt 
         self.step_count += 1
 
-        reward = self._compute_reward(thrust_tor_vec) # compute the reward as per below
         terminated = self._is_terminated() # check whether episode is terminated 
         truncated = self.step_count >= self.max_steps # check whether episode ends based on truncation
         # here we add a -50 reward to the drone, to signal that crashing or flipping cannot occur. 
+        reward = float(np.clip(
+            self._compute_reward(thrust_tor_vec),
+            -150.0, 
+            0.2, # here we prevent the reward from become too large in the negative direction for different phases, which would result in PPO training on distorted reward signals
+        ))
         if terminated:
             reward -= 50.0
 
@@ -176,6 +180,9 @@ class HoverEnv(gym.Env):
         z = self.state[2]
         phi = self.state[6]
         theta = self.state[7]
+        vel = self.state[3:6]
+        omega = self.state[9:12]
         crashed = z <= 0.0
         flipped = abs(phi) > np.pi/3 or abs(theta) > np.pi/3 # for this 'flipped' quantity I need to add a calculated restriction inside of params...which would be given by total vertical thrust>= total downward force. The total vertical thrust = thrust_max.cos(phi).cos(theta)...based on a quick calc. from params, we  have that 60deg = pi/3 rad is a decent estimate
+        diverged = np.linalg.norm(vel)>20.0 or np.linalg.norm(omega)>50.0 # if the quadrotor's total lin. velocity or ang. velocity exceeds 20m/s or 50rad/s, then policy diverged. Again this to prevent the episode from running too long during stochastic wind scenarios
         return bool(crashed or flipped)

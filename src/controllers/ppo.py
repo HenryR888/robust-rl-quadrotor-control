@@ -10,6 +10,7 @@ from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.callbacks import EvalCallback, BaseCallback
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
+from stable_baselines3.common.running_mean_std import RunningMeanStd
 
 from envs.hover_env import HoverEnv
 
@@ -159,6 +160,7 @@ def train_ppo_curriculum(
     env3.training=True
     env3.norm_reward = True
     env3.clip_obs = 10.0
+    env3.ret_rms = RunningMeanStd(shape=())
 
     eval_env3 = VecNormalize.load(
         "models/ppo_phase2/vec_normalize.pkl",
@@ -199,6 +201,7 @@ def train_ppo_curriculum(
     env4.training = True
     env4.norm_reward = True
     env4.clip_obs = 10.0
+    env4.ret_rms = RunningMeanStd(shape=())
 
     eval_env4 = VecNormalize.load(
         "models/ppo_phase3/vec_normalize.pkl",
@@ -238,6 +241,7 @@ def train_ppo_curriculum(
     env5.training = True
     env5.norm_reward = True
     env5.clip_obs = 10.0
+    env5.ret_rms = RunningMeanStd(shape=())
 
     eval_env5 = VecNormalize.load(
         "models/ppo_phase4/vec_normalize.pkl",
