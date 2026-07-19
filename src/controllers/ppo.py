@@ -295,14 +295,14 @@ def train_ppo_curriculum_from_phase3(
         lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, wind_randomize=True, reset_radius=1.5)),
         n_envs=n_envs
     )
-    env3 = VecNormalize.load("models/ppo_phase2/vec_normalize.pkl", env3)
+    env3 = VecNormalize.load("models/ppo_phase2/best_vec_normalize.pkl", env3)
     env3.training=True
     env3.norm_reward = True
     env3.clip_obs = 10.0
     env3.ret_rms = RunningMeanStd(shape=())
 
     eval_env3 = VecNormalize.load(
-        "models/ppo_phase2/vec_normalize.pkl",
+        "models/ppo_phase2/best_vec_normalize.pkl",
         DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, reset_radius=1.5))])
     )
     eval_env3.training = False
@@ -317,14 +317,14 @@ def train_ppo_curriculum_from_phase3(
         best_model_save_path=PHASE3_DIR,
         log_path=LOG_DIR + "_phase3",
         eval_freq=max(10_000 // n_envs, 1), # we run an evaluation to update the model every 10000 time steps.
-        n_eval_episodes=10, # here we run 10 test episodes to obtain the mean reward
+        n_eval_episodes=30, # here we run 30 test episodes to obtain the mean reward
         deterministic=True, # we remove the stochastic distribution (Gaussian in this case) when producing the output of our Net.
         render=False,
         callback_on_new_best=save_norm3
     )
 
     print("Starting Phase 3...Loading...")
-    model = PPO.load(os.path.join(PHASE2_DIR, "best_model"), env=env3)
+    model = PPO.load(os.path.join(PHASE2_DIR, "best_model"), env=env3, learning_rate=3e-5, ent_coef=0.001)
     model.learn(total_timesteps=phase3_timesteps, callback=eval_cb3, reset_num_timesteps=False)
     env3.save(os.path.join(PHASE3_DIR, "vec_normalize.pkl"))
     model.save(os.path.join(PHASE3_DIR, "final_model"))
@@ -336,14 +336,14 @@ def train_ppo_curriculum_from_phase3(
         lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=0.0, reset_radius=5.0, reset_sphere=True)),
         n_envs=n_envs
     )
-    env4 = VecNormalize.load("models/ppo_phase3/vec_normalize.pkl", env4)
+    env4 = VecNormalize.load("models/ppo_phase3/best_vec_normalize.pkl", env4)
     env4.training = True
     env4.norm_reward = True
     env4.clip_obs = 10.0
     env4.ret_rms = RunningMeanStd(shape=())
 
     eval_env4 = VecNormalize.load(
-        "models/ppo_phase3/vec_normalize.pkl",
+        "models/ppo_phase3/best_vec_normalize.pkl",
         DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=0.0, reset_radius=5.0, reset_sphere=True))])
     )
     eval_env4.training = False
@@ -358,13 +358,13 @@ def train_ppo_curriculum_from_phase3(
         best_model_save_path=PHASE4_DIR,
         log_path=LOG_DIR + "_phase4",
         eval_freq=max(10_000 // n_envs, 1), # we run an evaluation to update the model every 10000 time steps.
-        n_eval_episodes=10, # here we run 10 test episodes to obtain the mean reward
+        n_eval_episodes=30, # here we run 30 test episodes to obtain the mean reward
         deterministic=True,render=False, # we remove the stochastic distribution (Gaussian in this case) when producing the output of our Net.
         callback_on_new_best=save_norm4
     )
 
     print("Starting Phase 4...Loading...")
-    model = PPO.load(os.path.join(PHASE3_DIR, "best_model"), env=env4)
+    model = PPO.load(os.path.join(PHASE3_DIR, "best_model"), env=env4, learning_rate=3e-5, ent_coef=0.001)
     model.learn(total_timesteps=phase4_timesteps, callback=eval_cb4, reset_num_timesteps=False)
     env4.save(os.path.join(PHASE4_DIR, "vec_normalize.pkl"))
     model.save(os.path.join(PHASE4_DIR, "final_model"))
@@ -376,14 +376,14 @@ def train_ppo_curriculum_from_phase3(
         lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, wind_randomize=True, reset_radius=5.0, reset_sphere=True)),
         n_envs=n_envs
     )
-    env5 = VecNormalize.load("models/ppo_phase4/vec_normalize.pkl", env5)
+    env5 = VecNormalize.load("models/ppo_phase4/best_vec_normalize.pkl", env5)
     env5.training = True
     env5.norm_reward = True
     env5.clip_obs = 10.0
     env5.ret_rms = RunningMeanStd(shape=())
 
     eval_env5 = VecNormalize.load(
-        "models/ppo_phase4/vec_normalize.pkl",
+        "models/ppo_phase4/best_vec_normalize.pkl",
         DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, reset_radius=5.0, reset_sphere=True))])
     )
     eval_env5.training = False
@@ -398,13 +398,13 @@ def train_ppo_curriculum_from_phase3(
         best_model_save_path=PHASE5_DIR,
         log_path=LOG_DIR + "_phase5",
         eval_freq=max(10_000 // n_envs, 1), # we run an evaluation to update the model every 10000 time steps.
-        n_eval_episodes=10, # here we run 10 test episodes to obtain the mean reward
+        n_eval_episodes=30, # here we run 30 test episodes to obtain the mean reward
         deterministic=True,render=False, # we remove the stochastic distribution (Gaussian in this case) when producing the output of our Net.
         callback_on_new_best=save_norm5
     )
 
     print("Starting Phase 5...Loading...")
-    model = PPO.load(os.path.join(PHASE4_DIR, "best_model"), env=env5)
+    model = PPO.load(os.path.join(PHASE4_DIR, "best_model"), env=env5, learning_rate=3e-5, ent_coef=0.001)
     model.learn(total_timesteps=phase5_timesteps, callback=eval_cb5, reset_num_timesteps=False)
     env5.save(os.path.join(PHASE5_DIR, "vec_normalize.pkl"))
     model.save(os.path.join(PHASE5_DIR, "final_model"))
