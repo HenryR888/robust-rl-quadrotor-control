@@ -53,6 +53,8 @@ class EpisodeResult:
     control_effort: float
     crashed: bool
     episode_length: int
+    positions: Optional[np.ndarray] = None
+    error_trace: Optional[np.ndarray] = None
 
 def _set_ic(env: HoverEnv, ic_type: str) -> np.ndarray:
     if ic_type == "longrange":
@@ -71,7 +73,8 @@ def _set_ic(env: HoverEnv, ic_type: str) -> np.ndarray:
         env.state[2] = 0.05
     return env.state.copy()
 
-def run_episode(controller, env: HoverEnv, seed: int, ic_type: str, approach_speed: float = 0.0) -> EpisodeResult: 
+def run_episode(controller, env: HoverEnv, seed: int, ic_type: str, approach_speed: float = 0.0,
+                record_trajectory: bool = False) -> EpisodeResult: 
     obs, _ = env.reset(seed=seed)
     if ic_type != "local":
         obs = _set_ic(env, ic_type)
@@ -87,6 +90,7 @@ def run_episode(controller, env: HoverEnv, seed: int, ic_type: str, approach_spe
     u_hover = np.array([env.params.m * env.params.g, 0.0, 0.0, 0.0])
     pos_errors = []
     efforts = []
+    positions = [obs[0:3].copy()] if record_trajectory else None
     terminated = False
 
     for _ in range (env.max_steps):
@@ -95,6 +99,8 @@ def run_episode(controller, env: HoverEnv, seed: int, ic_type: str, approach_spe
         # we find the position error and the control effort: 
         pos_errors.append(np.linalg.norm(obs[0:3]-TARGET))
         efforts.append(float(np.sum((action-u_hover)**2)))
+        if record_trajectory:
+            positions.append(obs[0:3].copy())
         if terminated or truncated:
             break
     
@@ -116,6 +122,8 @@ def run_episode(controller, env: HoverEnv, seed: int, ic_type: str, approach_spe
         control_effort=float(np.mean(efforts)),
         crashed=bool(terminated),
         episode_length=n,
+        positions=np.array(positions) if record_trajectory else None,
+        error_trace=pos_errors if record_trajectory else None,
     )
 
 # we run over all the seeds to produce different seeded episodeResults: 
