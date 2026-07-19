@@ -145,7 +145,7 @@ class HoverEnv(gym.Env):
             0.2, # here we prevent the reward from become too large in the negative direction for different phases, which would result in PPO training on distorted reward signals
         ))
         if terminated:
-            reward -= 50.0
+            reward -= 2500.0
 
         return self.state.copy(), reward, terminated, truncated, {}
 

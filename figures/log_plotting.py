@@ -20,7 +20,7 @@ for phase in ["ppo_phase3", "ppo_phase3", "ppo_phase5"]:
     fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(9, 6))
     fig.suptitle(phase)
     ax1.plot(timesteps, mean_reward)
-    ax1.axvline(timesteps[best], color="g", linestyle="--", label="EvalCallback 'best'")
+    ax1.axvline(timesteps[best], color="g", linestyle="--", label="'best' policy")
     ax1.set_ylabel("eval mean reward")
     ax1.legend()
     ax2.plot(timesteps, mean_ep_len)
