@@ -150,7 +150,7 @@ def train_ppo(total_timesteps: int = 20_000_000, n_envs: int =4):
         save_path=os.path.join(MODEL_DIR, "best_vec_normalize.pkl")
     )
 
-    eval_callback = EvalCallback(
+    eval_callback = RateEvalCallback(
         eval_env,
         best_model_save_path=MODEL_DIR,
         log_path=LOG_DIR,
@@ -229,7 +229,7 @@ def train_ppo_curriculum(
         vec_normalize_env=env2,
         save_path = os.path.join(PHASE2_DIR, "best_vec_normalize.pkl")
     )
-    eval_cb2 = EvalCallback(
+    eval_cb2 = RateEvalCallback(
         eval_env2,
         best_model_save_path=PHASE2_DIR,
         log_path=LOG_DIR+"_phase2",
@@ -270,7 +270,7 @@ def train_ppo_curriculum(
         vec_normalize_env=env3,
         save_path=os.path.join(PHASE3_DIR, "best_vec_normalize.pkl")
     )
-    eval_cb3 = EvalCallback(
+    eval_cb3 = RateEvalCallback(
         eval_env3,
         best_model_save_path=PHASE3_DIR,
         log_path=LOG_DIR + "_phase3",
@@ -311,7 +311,7 @@ def train_ppo_curriculum(
         vec_normalize_env=env4,
         save_path=os.path.join(PHASE4_DIR, "best_vec_normalize.pkl")
     )
-    eval_cb4 = EvalCallback(
+    eval_cb4 = RateEvalCallback(
         eval_env4,
         best_model_save_path=PHASE4_DIR,
         log_path=LOG_DIR + "_phase4",
@@ -351,7 +351,7 @@ def train_ppo_curriculum(
         vec_normalize_env=env5,
         save_path=os.path.join(PHASE5_DIR, "best_vec_normalize.pkl")
     )
-    eval_cb5 = EvalCallback(
+    eval_cb5 = RateEvalCallback(
         eval_env5,
         best_model_save_path=PHASE5_DIR,
         log_path=LOG_DIR + "_phase5",
@@ -409,7 +409,7 @@ def train_ppo_curriculum_from_phase3(
         vec_normalize_env=env3,
         save_path=os.path.join(PHASE3_DIR, "best_vec_normalize.pkl")
     )
-    eval_cb3 = EvalCallback(
+    eval_cb3 = RateEvalCallback(
         eval_env3,
         best_model_save_path=PHASE3_DIR,
         log_path=LOG_DIR + "_phase3",
@@ -450,7 +450,7 @@ def train_ppo_curriculum_from_phase3(
         vec_normalize_env=env4,
         save_path=os.path.join(PHASE4_DIR, "best_vec_normalize.pkl")
     )
-    eval_cb4 = EvalCallback(
+    eval_cb4 = RateEvalCallback(
         eval_env4,
         best_model_save_path=PHASE4_DIR,
         log_path=LOG_DIR + "_phase4",
@@ -490,7 +490,7 @@ def train_ppo_curriculum_from_phase3(
         vec_normalize_env=env5,
         save_path=os.path.join(PHASE5_DIR, "best_vec_normalize.pkl")
     )
-    eval_cb5 = EvalCallback(
+    eval_cb5 = RateEvalCallback(
         eval_env5,
         best_model_save_path=PHASE5_DIR,
         log_path=LOG_DIR + "_phase5",
