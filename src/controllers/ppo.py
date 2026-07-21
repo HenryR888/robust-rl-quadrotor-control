@@ -556,7 +556,9 @@ def train_ppo_curriculum_from_phase4(
     )
 
     print("Starting Phase 4...Loading...")
-    model = PPO.load(os.path.join(PHASE3_DIR, "best_model"), env=env4, learning_rate=3e-5, ent_coef=0.001)
+    # here we increase the entropy coeff and reset the standard deviation, in order to give the policy the ability to explore more, as phase3 produced narrowly concentrated actions for the phase3 state distribution landscape:  
+    model = PPO.load(os.path.join(PHASE3_DIR, "best_model"), env=env4, learning_rate=3e-5, ent_coef=0.01)
+    model.policy.log_std.data.fill_(np.log(0.3))
     model.learn(total_timesteps=phase4_timesteps, callback=eval_cb4, reset_num_timesteps=False)
     env4.save(os.path.join(PHASE4_DIR, "vec_normalize.pkl"))
     model.save(os.path.join(PHASE4_DIR, "final_model"))
