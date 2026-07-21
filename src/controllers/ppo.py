@@ -507,6 +507,101 @@ def train_ppo_curriculum_from_phase3(
     model.save(os.path.join(PHASE5_DIR, "final_model"))
     print("Phase 5 Training is complete.")
 
+def train_ppo_curriculum_from_phase4(
+        # then we add a fourth phase of 20M timesteps with 5m plus calm conditions:
+        phase4_timesteps: int = 20_000_000,
+        # finally, we do a final fifth phase with 5m plus AR(1) stochastic wind conditions:
+        phase5_timesteps: int = 20_000_000,
+        n_envs: int = 4,
+): # after our base model finishes, we take that model, and train 20M timesteps (which is phase2 best_model). Upon completion, we take phase2_best_model and use that as the base model for phase3 to train on. This is called curriculum based training. 
+    PHASE2_DIR = "models/ppo_phase2"
+    PHASE3_DIR = "models/ppo_phase3"
+    PHASE4_DIR = "models/ppo_phase4"
+    PHASE5_DIR = "models/ppo_phase5"
+    os.makedirs(PHASE3_DIR, exist_ok=True)
+    os.makedirs(PHASE4_DIR, exist_ok=True)
+    os.makedirs(PHASE5_DIR, exist_ok=True)
+
+    # Phase 4 of training:
+
+    env4 = make_vec_env(
+        lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=0.0, reset_radius=5.0, reset_sphere=True)),
+        n_envs=n_envs
+    )
+    env4 = VecNormalize.load("models/ppo_phase3/best_vec_normalize.pkl", env4)
+    env4.training = True
+    env4.norm_reward = True
+    env4.clip_obs = 10.0
+    env4.ret_rms = RunningMeanStd(shape=())
+
+    eval_env4 = VecNormalize.load(
+        "models/ppo_phase3/best_vec_normalize.pkl",
+        DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=0.0, reset_radius=5.0, reset_sphere=True))])
+    )
+    eval_env4.training = False
+    eval_env4.norm_reward = False
+
+    save_norm4 = SaveNormalizeCallback(
+        vec_normalize_env=env4,
+        save_path=os.path.join(PHASE4_DIR, "best_vec_normalize.pkl")
+    )
+    eval_cb4 = RateEvalCallback(
+        eval_env4,
+        best_model_save_path=PHASE4_DIR,
+        log_path=LOG_DIR + "_phase4",
+        eval_freq=max(10_000 // n_envs, 1), # we run an evaluation to update the model every 10000 time steps.
+        n_eval_episodes=30, # here we run 30 test episodes to obtain the mean reward
+        deterministic=True,render=False, # we remove the stochastic distribution (Gaussian in this case) when producing the output of our Net.
+        callback_on_new_best=save_norm4
+    )
+
+    print("Starting Phase 4...Loading...")
+    model = PPO.load(os.path.join(PHASE3_DIR, "best_model"), env=env4, learning_rate=3e-5, ent_coef=0.001)
+    model.learn(total_timesteps=phase4_timesteps, callback=eval_cb4, reset_num_timesteps=False)
+    env4.save(os.path.join(PHASE4_DIR, "vec_normalize.pkl"))
+    model.save(os.path.join(PHASE4_DIR, "final_model"))
+    print("Phase 4 Training is complete.")
+
+    # Phase 5 of training:
+
+    env5 = make_vec_env(
+        lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, wind_randomize=True, reset_radius=5.0, reset_sphere=True)),
+        n_envs=n_envs
+    )
+    env5 = VecNormalize.load("models/ppo_phase4/best_vec_normalize.pkl", env5)
+    env5.training = True
+    env5.norm_reward = True
+    env5.clip_obs = 10.0
+    env5.ret_rms = RunningMeanStd(shape=())
+
+    eval_env5 = VecNormalize.load(
+        "models/ppo_phase4/best_vec_normalize.pkl",
+        DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv(wind_magnitude=2.0, reset_radius=5.0, reset_sphere=True))])
+    )
+    eval_env5.training = False
+    eval_env5.norm_reward = False
+
+    save_norm5 = SaveNormalizeCallback(
+        vec_normalize_env=env5,
+        save_path=os.path.join(PHASE5_DIR, "best_vec_normalize.pkl")
+    )
+    eval_cb5 = RateEvalCallback(
+        eval_env5,
+        best_model_save_path=PHASE5_DIR,
+        log_path=LOG_DIR + "_phase5",
+        eval_freq=max(10_000 // n_envs, 1), # we run an evaluation to update the model every 10000 time steps.
+        n_eval_episodes=30, # here we run 30 test episodes to obtain the mean reward
+        deterministic=True,render=False, # we remove the stochastic distribution (Gaussian in this case) when producing the output of our Net.
+        callback_on_new_best=save_norm5
+    )
+
+    print("Starting Phase 5...Loading...")
+    model = PPO.load(os.path.join(PHASE4_DIR, "best_model"), env=env5, learning_rate=3e-5, ent_coef=0.001)
+    model.learn(total_timesteps=phase5_timesteps, callback=eval_cb5, reset_num_timesteps=False)
+    env5.save(os.path.join(PHASE5_DIR, "vec_normalize.pkl"))
+    model.save(os.path.join(PHASE5_DIR, "final_model"))
+    print("Phase 5 Training is complete.")
+
 
 class PPOController:
 
