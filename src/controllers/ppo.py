@@ -598,7 +598,8 @@ def train_ppo_curriculum_from_phase4(
     )
 
     print("Starting Phase 5...Loading...")
-    model = PPO.load(os.path.join(PHASE4_DIR, "best_model"), env=env5, learning_rate=3e-5, ent_coef=0.001)
+    model = PPO.load(os.path.join(PHASE4_DIR, "best_model"), env=env5, learning_rate=3e-5, ent_coef=0.01)
+    model.policy.log_std.data.fill_(np.log(0.3))
     model.learn(total_timesteps=phase5_timesteps, callback=eval_cb5, reset_num_timesteps=False)
     env5.save(os.path.join(PHASE5_DIR, "vec_normalize.pkl"))
     model.save(os.path.join(PHASE5_DIR, "final_model"))
