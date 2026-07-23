@@ -179,12 +179,13 @@ SCENARIOS = {
 
 if __name__=="__main__":
     params = Quadrotorparams()
+    PPO_PHASE5_DIR = "models/ppo_phase5"
     controllers = {
         "PID": CascadedPIDController(params),
         "LQR": LQRController(params),
         "PPO": PPOController(
-            model_path=f"{MODEL_DIR}/best_model",
-            norm_path=f"{MODEL_DIR}/best_vec_normalize.pkl"
+            model_path=f"{PPO_PHASE5_DIR}/best_model",
+            norm_path=f"{PPO_PHASE5_DIR}/best_vec_normalize.pkl"
         ),
     }
 

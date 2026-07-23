@@ -145,15 +145,16 @@ def figure_summary_bars(all_results, metric_key="settle_rate", ylabel="Settle Ra
 
 if __name__ == "__main__":
     params = Quadrotorparams()
+    PPO_PHASE5_DIR = "models/ppo_phase5"
     controllers = {
         "PID": CascadedPIDController(params),
         "LQR": LQRController(params),
-        "PPO": PPOController(model_path=f"{MODEL_DIR}/best_model", norm_path=f"{MODEL_DIR}/best_vec_normalize.pkl"),
+        "PPO": PPOController(model_path=f"{PPO_PHASE5_DIR}/best_model", norm_path=f"{PPO_PHASE5_DIR}/best_vec_normalize.pkl"),
     }
 
-    figure_3d_trajectory(controllers, scenario_name="takeoff_wind")
-    figure_distance_density(controllers, scenario_name="takeoff_wind")
-    figure_error_vs_time(controllers, scenario_name="takeoff_wind")
+    figure_3d_trajectory(controllers, scenario_name="takeoff_calm")
+    figure_distance_density(controllers, scenario_name="takeoff_calm")
+    figure_error_vs_time(controllers, scenario_name="takeoff_calm")
 
 
 #for phase in ["ppo_phase3", "ppo_phase3", "ppo_phase5"]:
