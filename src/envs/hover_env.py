@@ -32,7 +32,13 @@ class HoverEnv(gym.Env):
                 alpha: float = 0.98,
                 gamma_max: float = np.pi/12,
                 reset_radius: float = 0.3,
-                reset_sphere: bool = False):
+                reset_sphere: bool = False,
+                w_pos: float = 1.0,
+                w_vel: float = 0.5,
+                w_yaw: float = 4.0,
+                w_omega: float = 2.0,
+                w_eff: float = 0.25):
+
         super().__init__()
         self.params = Quadrotorparams()
         self.target = target
@@ -55,14 +61,14 @@ class HoverEnv(gym.Env):
         # We can start with the following reward function for PPO: r_t = 0.1 -(w_pos||p-p*||^2 + w_vel||v||^2 + w_yaw||psi^2|| + w_omega||omega||^2 + w_eff||u-u_hov||^2)
         # the reasoning for this reward function is it follows a similar mechanism to the LQR (Quadratic) cost function, which is a quadratic cost function dependent on performance and control effort. I am trying to minimise variation here so we can
         # have a statistically fair comparison between control methods (LQR, PPO) in their ability for robust stabilisation of the drone. We also add the 0.1 initially as a survival factor for early episodes of training
-        self.w_pos = 1.0
-        self.w_vel = 0.5
+        self.w_pos = w_pos
+        self.w_vel = w_vel
         # we remove the w_roll_pitch to maintain consistent reward design throughout the entire experiment, since the quadrotor may tilt into the wind to counter wind forces, and thus do 
         # not want to penalise the controller for tilting into the wind for stochastic wind disturbances. Moreover, we want to maintain consistent reward design to remove confounding between baseline and disturbance conditions
         #self.w_roll_pitch = 2.0
-        self.w_yaw = 4.0
-        self.w_omega = 2.0
-        self.w_eff = 0.25
+        self.w_yaw = w_yaw
+        self.w_omega = w_omega
+        self.w_eff = w_eff
 
         # Define action space, as per gymnasium spaces API: 
         action_low = np.array([0.0,-self.params.tau_xy_max,-self.params.tau_xy_max,-self.params.tau_z_max])
