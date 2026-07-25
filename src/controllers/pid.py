@@ -37,21 +37,21 @@ class CascadedPIDController:
         self.params = params 
 
         # z-axis gains:
-        self.gains_z = PIDGains(kp=2.0,ki=0.0, kd=1.5, integral_limit=0.5) # TUNING COMPLETE
+        self.gains_z = PIDGains(kp=16.0,ki=0.5, kd=8.0, integral_limit=2.0) # TUNING COMPLETE
 
         # x and y axis position gains:
         # For faster optimal conversion
         #self.gains_x = PIDGains(kp=0.05,ki=0.002, kd=0.1, integral_limit=50.0) 
         #self.gains_y = PIDGains(kp=0.05,ki=0.002, kd=0.1, integral_limit=50.0)
-        self.gains_x = PIDGains(kp=0.02,ki=0.002, kd=0.05, integral_limit=100.0) # TUNING COMPLETE
-        self.gains_y = PIDGains(kp=0.02,ki=0.002, kd=0.05, integral_limit=100.0) # TUNING COMPLETE
+        self.gains_x = PIDGains(kp=1.6,ki=0.002, kd=0.8, integral_limit=100.0) # TUNING COMPLETE
+        self.gains_y = PIDGains(kp=1.6,ki=0.002, kd=0.8, integral_limit=100.0) # TUNING COMPLETE
 
         # even though within hover_env we set a limit of pi/4 rads before drone flips...we want some margin to prevent controller pushing drone to limit, and stochastic disturbance arises pushing drone into flip. 
         self.max_tilt = np.pi/6
 
         # Attitude gains for inner control loop: 
-        self.gains_phi = PIDGains(kp=0.005,ki=0.0, kd=0.01, integral_limit=0.5) # TUNING COMPLETE
-        self.gains_theta = PIDGains(kp=0.003,ki=0.0, kd=0.01, integral_limit=0.5) # TUNING COMPLETE
+        self.gains_phi = PIDGains(kp=5.0,ki=0.0, kd=0.3, integral_limit=0.5) # TUNING COMPLETE
+        self.gains_theta = PIDGains(kp=5.0,ki=0.0, kd=0.3, integral_limit=0.5) # TUNING COMPLETE
         self.gains_psi = PIDGains(kp=0.02,ki=0.0, kd=0.06, integral_limit=0.5) # TUNING COMPLETE
 
         # we have 6 PID controllers, one controlling each channel. Thus, we need each controller to have separate integral and prev_error values (i.e. PID states): 
