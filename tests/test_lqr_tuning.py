@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from envs.hover_env import HoverEnv
 from controllers.lqr import LQRController
+from compare import _set_ic, SCENARIOS
 
 target = np.array([0.0, 0.0, 1.0]) # target here is 1.0m
 settle_time = 3.0 # in seconds...allow controller to settle before checking steady-state error
@@ -134,7 +135,7 @@ def test_attitude_recovery():
 
 # 3 tests: 
 #test_hover_stability()
-test_z_step_recovery()
+#test_z_step_recovery()
 #test_attitude_recovery()
 
 
@@ -166,7 +167,53 @@ def tune_z():
     settle_idx = _settle_index(0.01)                                                                                                                                                     
     print(f"Terminated early: {terminated_early}")                                                                                                                                       
     print(f"Max z error after {settle_time}s: {np.abs(states[settle_idx:, 2] - target[2]).max():.4f} m")                                                                                 
-    print(f"Max vz after {settle_time}s: {np.abs(states[settle_idx:, 5]).max():.4f} m/s")                                                                                           
-                                                                                                                                                                                           
+    print(f"Max vz after {settle_time}s: {np.abs(states[settle_idx:, 5]).max():.4f} m/s")   
+
+def _run_episode_scenario(scenario_name: str, seed: int, sim_time: float = 10.0):
+      config = SCENARIOS[scenario_name]
+      env = HoverEnv(target=target, **config["env_kwargs"])
+      controller = LQRController(env.params)
+
+      obs, _ = env.reset(seed=seed)
+      if config["ic"] != "local":
+          obs = _set_ic(env, config["ic"])
+      if config["approach_speed"] > 0.0:
+          azimuth = env.np_random.uniform(0, 2*np.pi)
+          elevation = env.np_random.uniform(-np.pi/4, np.pi/4)
+          env.state[3] = config["approach_speed"]*np.cos(elevation)*np.cos(azimuth)
+          env.state[4] = config["approach_speed"]*np.cos(elevation)*np.sin(azimuth)
+          env.state[5] = config["approach_speed"]*np.sin(elevation)
+          obs = env.state.copy()
+      controller.reset()
+
+      n_steps = int(sim_time / env.dt)
+      states, actions = [], []
+      terminated_early = False
+      for _ in range(n_steps):
+          action = controller.compute_action(obs, env.target, env.dt)
+          obs, _, terminated, _, _ = env.step(action)
+          states.append(obs.copy())
+          actions.append(action.copy())
+          if terminated:
+              terminated_early = True
+              break
+      return np.array(states), np.array(actions), terminated_early  
+
+def find_crashing_seeds(scenario_name="longrange_approach_calm", n_seeds=20):
+      crashed = []
+      for seed in range(n_seeds):
+          _, _, terminated_early = _run_episode_scenario(scenario_name, seed, sim_time=50.0)
+          if terminated_early:
+              crashed.append(seed)
+      print(f"{scenario_name}: crashed seeds = {crashed}")
+      return crashed                                                                         
+
+def tune_longrange_approach():
+      crashed = find_crashing_seeds("longrange_approach_wind")
+      seed = crashed[0] if crashed else 0
+      states, actions, terminated_early = _run_episode_scenario("longrange_approach_wind", seed, sim_time=10.0)
+      _plot(states, actions, 0.01, f"LQR Tuning: longrange_approach_calm, seed={seed}, crashed={terminated_early}")
+
+tune_longrange_approach()                                                                                                                                          
                                                                                                                                                                                            
 #tune_z()
