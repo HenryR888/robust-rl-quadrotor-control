@@ -661,64 +661,54 @@ def train_ppo_curriculum_from_phase5(
     print("Phase 5 Training is complete.")
 
 
-# finetuning: 
-
-def train_ppo_reward_finetune(
-        finetune_timesteps:int = 10_000_000,
+def train_ppo_reset_widen(
+        finetune_timesteps: int = 10_000_000,
         n_envs: int = 4,
-        # here we increase the positional weight in the reward function to make controller more precise, and make controller more aggressive: 
-        w_pos: float = 4.0, 
-        w_eff: float = 0.05,
 ):
     PHASE5_DIR = "models/ppo_phase5"
-    PHASE6_DIR = "models/ppo_phase6"
-    os.makedirs(PHASE6_DIR, exist_ok=True)
+    PHASE7_DIR = "models/ppo_phase7"
+    os.makedirs(PHASE7_DIR, exist_ok=True)
 
-    env6 = make_vec_env(
-          lambda: RelativeObsWrapper(HoverEnv(
-              wind_magnitude=2.0, wind_randomize=True,
-              reset_radius=5.0, reset_sphere=True,
-              w_pos=w_pos, w_eff=w_eff,
-          )),
-          n_envs=n_envs
-      )
-    
-    env6 = VecNormalize.load("models/ppo_phase5/best_vec_normalize.pkl", env6)
-    env6.training = True
-    env6.norm_reward = True
-    env6.clip_obs = 10.0
-    env6.ret_rms = RunningMeanStd(shape=())
+    env7 = make_vec_env(
+        lambda: RelativeObsWrapper(HoverEnv(
+            wind_magnitude=2.0, wind_randomize=True,
+            reset_radius=5.0, reset_sphere=True,
+        )),
+        n_envs=n_envs
+    )
+    env7 = VecNormalize.load("models/ppo_phase5/best_vec_normalize.pkl", env7)
+    env7.training = True
+    env7.norm_reward = True
 
-    eval_env6 = VecNormalize.load(
+    eval_env7 = VecNormalize.load(
         "models/ppo_phase5/best_vec_normalize.pkl",
         DummyVecEnv([lambda: RelativeObsWrapper(HoverEnv(
             wind_magnitude=2.0, reset_radius=5.0, reset_sphere=True,
-            w_pos=w_pos, w_eff=w_eff,
         ))])
     )
-    eval_env6.training = False
-    eval_env6.norm_reward = False
+    eval_env7.training = False
+    eval_env7.norm_reward = False
 
-    save_norm6 = SaveNormalizeCallback(
-          vec_normalize_env=env6,
-          save_path=os.path.join(PHASE6_DIR, "best_vec_normalize.pkl")
+    save_norm7 = SaveNormalizeCallback(
+        vec_normalize_env=env7,
+        save_path=os.path.join(PHASE7_DIR, "best_vec_normalize.pkl")
     )
-    eval_cb6 = RateEvalCallback(
-        eval_env6,
-        best_model_save_path=PHASE6_DIR,
-        log_path=LOG_DIR + "_phase6",
+    eval_cb7 = RateEvalCallback(
+        eval_env7,
+        best_model_save_path=PHASE7_DIR,
+        log_path=LOG_DIR + "_phase7",
         eval_freq=max(10_000 // n_envs, 1),
         n_eval_episodes=30,
         deterministic=True, render=False,
-        callback_on_new_best=save_norm6
+        callback_on_new_best=save_norm7
     )
 
-    print("Starting reward-reweighted fine-tune...loading phase5 best_model...")
-    model = PPO.load(os.path.join(PHASE5_DIR, "best_model"), env=env6, learning_rate=3e-5, ent_coef=0.01)
-    model.learn(total_timesteps=finetune_timesteps, callback=eval_cb6, reset_num_timesteps=False)
-    env6.save(os.path.join(PHASE6_DIR, "vec_normalize.pkl"))
-    model.save(os.path.join(PHASE6_DIR, "final_model"))
-    print("Reward-reweighted fine-tune complete.")
+    print("Starting reset-distribution-widen finetune...loading phase5 best_model...")
+    model = PPO.load(os.path.join(PHASE5_DIR, "best_model"), env=env7, learning_rate=3e-5, ent_coef=0.01)
+    model.learn(total_timesteps=finetune_timesteps, callback=eval_cb7, reset_num_timesteps=False)
+    env7.save(os.path.join(PHASE7_DIR, "vec_normalize.pkl"))
+    model.save(os.path.join(PHASE7_DIR, "final_model"))
+    print("Reset-distribution-widen finetune complete.")
 
 class PPOController:
 

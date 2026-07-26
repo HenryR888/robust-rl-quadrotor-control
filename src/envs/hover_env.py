@@ -91,7 +91,8 @@ class HoverEnv(gym.Env):
         super().reset(seed=seed) # !Note: we shall set a seed here later once we start at randomly initialised positions to ensure reproducibility
         # we randomise the reset position so the drone starts off with non-zero error, depending on which phase of the PPO curriculum we are training: 
         if self.reset_sphere:
-            sin_gamma = self.np_random.uniform(0.0, 1.0) # sin of elevation angle that drone spawns in 
+            sin_gamma_max = np.sin(np.pi/4)
+            sin_gamma = self.np_random.uniform(-sin_gamma_max, sin_gamma_max) # here we increase our training state distribution to also include situations where quadrotor is below the target.
             cos_gamma = np.sqrt(1.00-sin_gamma**2)
             beta = self.np_random.uniform(0.0, 2.0*np.pi) # this is the azimuth angle that the drone is spawned in at
             offset = self.reset_radius * np.array([

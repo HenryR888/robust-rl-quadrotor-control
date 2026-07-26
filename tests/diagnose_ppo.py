@@ -103,4 +103,4 @@ def diagnose(scenario_name: str, seed: int = None):
     _plot(states, actions, 0.01, f"PPO Diagnostic: {scenario_name}, seed={seed}")
 
 
-diagnose("longrange_approach_wind", seed=18)
+diagnose("longrange_approach_wind")
