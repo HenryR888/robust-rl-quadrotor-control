@@ -11,7 +11,7 @@ from controllers.pid import CascadedPIDController
 from controllers.lqr import LQRController
 from controllers.ppo import PPOController, MODEL_DIR
 from quadrotor.params import Quadrotorparams
-from compare import run_episode, aggregate, SCENARIOS, TARGET
+from compare import run_episode, run_scenario, aggregate, SCENARIOS, TARGET
 
 # graph setup params: 
 plt.rcParams.update({
@@ -152,9 +152,22 @@ if __name__ == "__main__":
         "PPO": PPOController(model_path=f"{PPO_PHASE5_DIR}/best_model", norm_path=f"{PPO_PHASE5_DIR}/best_vec_normalize.pkl"),
     }
 
-    figure_3d_trajectory(controllers, scenario_name="takeoff_wind")
-    figure_distance_density(controllers, scenario_name="takeoff_wind")
-    figure_error_vs_time(controllers, scenario_name="takeoff_wind")
+    all_results = {}
+    for scenario_name, config in SCENARIOS.items():
+        all_results[scenario_name] = {}
+        for controller_name, controller in  controllers.items():
+            all_results[scenario_name][controller_name] = run_scenario(
+                controller, config["env_kwargs"], config["ic"], config["approach_speed"]
+            )
+    
+    figure_summary_bars(all_results, metric_key="ss_error_mean", ylabel="Steady-State Error (m)", fname="ss_error_summary")
+    figure_summary_bars(all_results, metric_key="peak_error_mean", ylabel="Peak Error (m)", fname="peak_error_summary")
+    figure_summary_bars(all_results, metric_key="settle_mean", ylabel="Time to Settle (s)", fname="settle_mean_summary")
+    figure_summary_bars(all_results, metric_key="effort_mean", ylabel="Control Effort", fname="effort_mean_summary")
+
+    #figure_3d_trajectory(controllers, scenario_name="takeoff_wind")
+    #figure_distance_density(controllers, scenario_name="takeoff_wind")
+    #figure_error_vs_time(controllers, scenario_name="takeoff_wind")
 
 
 #for phase in ["ppo_phase3", "ppo_phase3", "ppo_phase5"]:
