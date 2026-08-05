@@ -161,9 +161,10 @@ if __name__ == "__main__":
             )
     
     figure_summary_bars(all_results, metric_key="ss_error_mean", ylabel="Steady-State Error (m)", fname="ss_error_summary")
-    figure_summary_bars(all_results, metric_key="peak_error_mean", ylabel="Peak Error (m)", fname="peak_error_summary")
-    figure_summary_bars(all_results, metric_key="settle_mean", ylabel="Time to Settle (s)", fname="settle_mean_summary")
-    figure_summary_bars(all_results, metric_key="effort_mean", ylabel="Control Effort", fname="effort_mean_summary")
+    #figure_summary_bars(all_results, metric_key="peak_error_mean", ylabel="Peak Error (m)", fname="peak_error_summary")
+    #figure_summary_bars(all_results, metric_key="settle_mean", ylabel="Time to Settle (s)", fname="settle_mean_summary")
+    #figure_summary_bars(all_results, metric_key="effort_mean", ylabel="Control Effort", fname="effort_mean_summary")
+    figure_summary_bars(all_results, metric_key="settle_rate", ylabel="Settle Rate", fname="settle_rate_summary")
 
     #figure_3d_trajectory(controllers, scenario_name="takeoff_wind")
     #figure_distance_density(controllers, scenario_name="takeoff_wind")
